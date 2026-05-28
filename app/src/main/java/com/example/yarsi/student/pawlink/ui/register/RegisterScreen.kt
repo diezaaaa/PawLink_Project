@@ -1,5 +1,6 @@
 package com.example.yarsi.student.pawlink.ui.register
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -37,21 +38,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yarsi.student.pawlink.ui.theme.PawLinkTheme
 
-// Color
-object PawLinkColors {
-    val Primary     = Color(0xFF1D9E75)
-    val PrimaryDark = Color(0xFF0F6E56)
-    val PrimaryLight= Color(0xFFE1F5EE)
-    val Surface     = Color(0xFFFAFAFA)
-    val OnSurface   = Color(0xFF1A1A1A)
-    val Muted       = Color(0xFF888780)
-    val Border      = Color(0xFFE0E0E0)
-    val Error       = Color(0xFFD32F2F)
-    val White       = Color(0xFFFFFFFF)
-}
 
-// Data Models
 enum class UserRole(val label: String, val description: String, val icon: ImageVector) {
     PENCARI(
         label = "Pencari",
@@ -78,7 +67,6 @@ data class RegisterFormState(
     val confirmPasswordVisible: Boolean = false
 )
 
-// Main Screen
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit = {},
@@ -87,7 +75,11 @@ fun RegisterScreen(
     var currentStep by remember { mutableIntStateOf(1) }
     var formState by remember { mutableStateOf(RegisterFormState()) }
 
-    Box(modifier = Modifier.fillMaxSize().background(PawLinkColors.Surface)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         AnimatedContent(
             targetState = currentStep,
             transitionSpec = {
@@ -131,7 +123,10 @@ fun RegisterHeader(currentStep: Int, onBack: (() -> Unit)? = null) {
             .height(220.dp)
             .background(
                 Brush.verticalGradient(
-                    listOf(PawLinkColors.Primary, PawLinkColors.PrimaryDark)
+                    listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.primary
+                    )
                 )
             )
     ) {
@@ -155,7 +150,11 @@ fun RegisterHeader(currentStep: Int, onBack: (() -> Unit)? = null) {
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.07f))
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -165,19 +164,29 @@ fun RegisterHeader(currentStep: Int, onBack: (() -> Unit)? = null) {
                     modifier = Modifier
                         .size(44.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White),
+                        .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.Pets, contentDescription = null,
-                        tint = PawLinkColors.Primary, modifier = Modifier.size(26.dp)
+                    Icon(
+                        Icons.Filled.Pets,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(26.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text("PawLink", color = Color.White,
-                        fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                    Text("Adopsi & Pelaporan Hewan", color = Color.White,
-                        fontSize = 12.sp, fontWeight = FontWeight.Normal)
+                    Text(
+                        "PawLink",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                    Text(
+                        "Adopsi & Pelaporan Hewan",
+                        color = Color.White.copy(alpha = 0.75f),
+                        fontSize = 12.sp
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -207,12 +216,17 @@ fun StepIndicator(currentStep: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 if (isDone) {
-                    Icon(Icons.Default.Check, contentDescription = null,
-                        tint = PawLinkColors.Primary, modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
                 } else {
                     Text(
                         "$step",
-                        color = if (isActive) PawLinkColors.Primary else Color.White.copy(alpha = 0.6f),
+                        color = if (isActive) MaterialTheme.colorScheme.primary
+                        else Color.White.copy(alpha = 0.6f),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
                     )
@@ -225,7 +239,6 @@ fun StepIndicator(currentStep: Int) {
                 fontSize = 12.sp,
                 fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
             )
-
             if (index < 2) {
                 Box(
                     modifier = Modifier
@@ -261,12 +274,12 @@ fun Step1ChooseRole(
                 "Pilih Peran Anda",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = PawLinkColors.OnSurface
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 "Kamu bisa berganti peran kapan saja di pengaturan profil.",
                 fontSize = 14.sp,
-                color = PawLinkColors.Muted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
 
@@ -282,34 +295,23 @@ fun Step1ChooseRole(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = PawLinkColors.Border)
-                Text("  atau daftar dengan  ", color = PawLinkColors.Muted, fontSize = 12.sp)
-                HorizontalDivider(modifier = Modifier.weight(1f), color = PawLinkColors.Border)
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SocialButton(label = "Google", icon = Icons.Outlined.AccountCircle, modifier = Modifier.weight(1f))
-                SocialButton(label = "Facebook", icon = Icons.Outlined.Facebook, modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Button(
                 onClick = onNext,
                 enabled = formState.selectedRole != null,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PawLinkColors.Primary,
-                    disabledContainerColor = PawLinkColors.Border
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.outline
                 )
             ) {
-                Text("Lanjutkan", fontWeight = FontWeight.SemiBold, fontSize = 16.sp,
-                    color = if (formState.selectedRole != null) Color.White else PawLinkColors.Muted)
+                Text(
+                    "Lanjutkan",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null,
-                    tint = if (formState.selectedRole != null) Color.White else PawLinkColors.Muted)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
             }
 
             Row(
@@ -317,9 +319,18 @@ fun Step1ChooseRole(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Sudah punya akun?", color = PawLinkColors.Muted, fontSize = 14.sp)
+                Text(
+                    "Sudah punya akun?",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
                 TextButton(onClick = onBack) {
-                    Text("Masuk", color = PawLinkColors.Primary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(
+                        "Masuk",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
                 }
             }
         }
@@ -328,8 +339,16 @@ fun Step1ChooseRole(
 
 @Composable
 fun RoleCard(role: UserRole, isSelected: Boolean, onClick: () -> Unit) {
-    val borderColor by animateColorAsState(if (isSelected) PawLinkColors.Primary else PawLinkColors.Border, label = "border")
-    val bgColor by animateColorAsState(if (isSelected) PawLinkColors.PrimaryLight else PawLinkColors.White, label = "bg")
+    val borderColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.outline,
+        label = "border"
+    )
+    val bgColor by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface,
+        label = "bg"
+    )
 
     Card(
         onClick = onClick,
@@ -348,39 +367,48 @@ fun RoleCard(role: UserRole, isSelected: Boolean, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) PawLinkColors.Primary else PawLinkColors.Border),
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.outline
+                    ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(role.icon, contentDescription = null,
-                    tint = if (isSelected) Color.White else PawLinkColors.Muted,
-                    modifier = Modifier.size(26.dp))
+                Icon(
+                    role.icon,
+                    contentDescription = null,
+                    tint = if (isSelected) Color.White
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(26.dp)
+                )
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(role.label, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = PawLinkColors.OnSurface)
+                Text(
+                    role.label,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(role.description, fontSize = 13.sp, color = PawLinkColors.Muted, lineHeight = 18.sp)
+                Text(
+                    role.description,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
+                )
             }
             if (isSelected) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PawLinkColors.Primary, modifier = Modifier.size(22.dp))
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
             }
         }
     }
 }
 
-@Composable
-fun SocialButton(label: String, icon: ImageVector, modifier: Modifier = Modifier) {
-    OutlinedButton(
-        onClick = {},
-        modifier = modifier.height(48.dp),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, PawLinkColors.Border),
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
-    ) {
-        Icon(icon, contentDescription = label, tint = PawLinkColors.OnSurface, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(label, color = PawLinkColors.OnSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    }
-}
+
 
 @Composable
 fun Step2DataDiri(
@@ -396,7 +424,7 @@ fun Step2DataDiri(
 
     Column(modifier = Modifier.fillMaxSize()) {
         RegisterHeader(currentStep = 2, onBack = onBack)
-        
+
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -404,93 +432,88 @@ fun Step2DataDiri(
                 .padding(horizontal = 24.dp, vertical = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Lengkapi Data Diri", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PawLinkColors.OnSurface)
-            Text("Semua data aman dan tidak akan dibagikan.", fontSize = 14.sp, color = PawLinkColors.Muted)
+            Text(
+                "Lengkapi Data Diri",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                "Semua data aman dan tidak akan dibagikan.",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             // Profile Photo
             Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
                 Box(
-                    modifier = Modifier.size(88.dp).clip(CircleShape).background(PawLinkColors.PrimaryLight),
+                    modifier = Modifier
+                        .size(88.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Outlined.Person, contentDescription = null, tint = PawLinkColors.Primary, modifier = Modifier.size(40.dp))
+                    Icon(
+                        Icons.Outlined.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
                 }
                 Box(
-                    modifier = Modifier.size(28.dp).clip(CircleShape).background(PawLinkColors.Primary).align(Alignment.BottomEnd),
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .align(Alignment.BottomEnd),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                    Icon(
+                        Icons.Default.CameraAlt,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
             }
-            Text("Upload Foto Profil", fontSize = 13.sp, color = PawLinkColors.Muted, modifier = Modifier.align(Alignment.CenterHorizontally))
-
-            PawLinkTextField(
-                value = formState.name,
-                onValueChange = { onFormChange(formState.copy(name = it)) },
-                label = "Nama Lengkap",
-                leadingIcon = Icons.Outlined.Person,
-                placeholder = "Masukkan nama lengkap"
+            Text(
+                "Upload Foto Profil",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
-            PawLinkTextField(
-                value = formState.email,
-                onValueChange = { onFormChange(formState.copy(email = it)) },
-                label = "Email",
-                leadingIcon = Icons.Outlined.Email,
-                placeholder = "nama@email.com",
-                keyboardType = KeyboardType.Email
-            )
+            PawLinkTextField(value = formState.name, onValueChange = { onFormChange(formState.copy(name = it)) }, label = "Nama Lengkap", leadingIcon = Icons.Outlined.Person, placeholder = "Masukkan nama lengkap")
+            PawLinkTextField(value = formState.email, onValueChange = { onFormChange(formState.copy(email = it)) }, label = "Email", leadingIcon = Icons.Outlined.Email, placeholder = "nama@email.com", keyboardType = KeyboardType.Email)
+            PawLinkTextField(value = formState.phone, onValueChange = { onFormChange(formState.copy(phone = it)) }, label = "Nomor HP", leadingIcon = Icons.Outlined.Phone, placeholder = "08xxxxxxxxxx", keyboardType = KeyboardType.Phone)
+            PawLinkTextField(value = formState.city, onValueChange = { onFormChange(formState.copy(city = it)) }, label = "Kota", leadingIcon = Icons.Outlined.LocationOn, placeholder = "Nama kota kamu")
+            PawLinkTextField(value = formState.password, onValueChange = { onFormChange(formState.copy(password = it)) }, label = "Password", leadingIcon = Icons.Outlined.Lock, placeholder = "Min. 8 karakter", isPassword = true, passwordVisible = formState.passwordVisible, onTogglePassword = { onFormChange(formState.copy(passwordVisible = !formState.passwordVisible)) })
+            PawLinkTextField(value = formState.confirmPassword, onValueChange = { onFormChange(formState.copy(confirmPassword = it)) }, label = "Konfirmasi Password", leadingIcon = Icons.Outlined.Lock, placeholder = "Ulangi password", isPassword = true, passwordVisible = formState.confirmPasswordVisible, onTogglePassword = { onFormChange(formState.copy(confirmPasswordVisible = !formState.confirmPasswordVisible)) }, isError = formState.confirmPassword.isNotEmpty() && formState.password != formState.confirmPassword, errorText = "Password tidak cocok")
 
-            PawLinkTextField(
-                value = formState.phone,
-                onValueChange = { onFormChange(formState.copy(phone = it)) },
-                label = "Nomor HP",
-                leadingIcon = Icons.Outlined.Phone,
-                placeholder = "08xxxxxxxxxx",
-                keyboardType = KeyboardType.Phone
-            )
-
-            PawLinkTextField(
-                value = formState.city,
-                onValueChange = { onFormChange(formState.copy(city = it)) },
-                label = "Kota",
-                leadingIcon = Icons.Outlined.LocationOn,
-                placeholder = "Nama kota kamu"
-            )
-
-            PawLinkTextField(
-                value = formState.password,
-                onValueChange = { onFormChange(formState.copy(password = it)) },
-                label = "Password",
-                leadingIcon = Icons.Outlined.Lock,
-                placeholder = "Min. 8 karakter",
-                isPassword = true,
-                passwordVisible = formState.passwordVisible,
-                onTogglePassword = { onFormChange(formState.copy(passwordVisible = !formState.passwordVisible)) }
-            )
-
-            PawLinkTextField(
-                value = formState.confirmPassword,
-                onValueChange = { onFormChange(formState.copy(confirmPassword = it)) },
-                label = "Konfirmasi Password",
-                leadingIcon = Icons.Outlined.Lock,
-                placeholder = "Ulangi password",
-                isPassword = true,
-                passwordVisible = formState.confirmPasswordVisible,
-                onTogglePassword = { onFormChange(formState.copy(confirmPasswordVisible = !formState.confirmPasswordVisible)) },
-                isError = formState.confirmPassword.isNotEmpty() && formState.password != formState.confirmPassword,
-                errorText = "Password tidak cocok"
-            )
-
+            // Terms checkbox
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(PawLinkColors.PrimaryLight).padding(12.dp).clickable { onFormChange(formState.copy(agreeToTerms = !formState.agreeToTerms)) }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(12.dp)
+                    .clickable { onFormChange(formState.copy(agreeToTerms = !formState.agreeToTerms)) }
             ) {
-                Checkbox(checked = formState.agreeToTerms, onCheckedChange = { onFormChange(formState.copy(agreeToTerms = it)) }, colors = CheckboxDefaults.colors(checkedColor = PawLinkColors.Primary))
+                Checkbox(
+                    checked = formState.agreeToTerms,
+                    onCheckedChange = { onFormChange(formState.copy(agreeToTerms = it)) },
+                    colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi PawLink", fontSize = 13.sp, color = PawLinkColors.OnSurface, lineHeight = 18.sp)
+                Text(
+                    "Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi PawLink",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 18.sp
+                )
             }
 
             Button(
@@ -498,23 +521,26 @@ fun Step2DataDiri(
                 enabled = isFormValid,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PawLinkColors.Primary, disabledContainerColor = PawLinkColors.Border)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = MaterialTheme.colorScheme.outline
+                )
             ) {
-                Text("Buat Akun", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = if (isFormValid) Color.White else PawLinkColors.Muted)
+                Text("Buat Akun", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
+
 @Composable
 fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PawLinkColors.Surface)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Menggunakan header yang sama agar konsisten
         RegisterHeader(currentStep = 3)
 
         Column(
@@ -526,30 +552,39 @@ fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Success icon
             Box(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
-                    .background(PawLinkColors.PrimaryLight),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null,
-                    tint = PawLinkColors.Primary, modifier = Modifier.size(56.dp))
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Akun Berhasil Dibuat! 🎉",
-                fontSize = 24.sp, fontWeight = FontWeight.Bold,
-                color = PawLinkColors.OnSurface, textAlign = TextAlign.Center)
+            Text(
+                "Akun Berhasil Dibuat! 🎉",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 "Selamat datang di PawLink, ${formState.name.ifBlank { "pengguna baru" }}!",
-                fontSize = 15.sp, color = PawLinkColors.Muted,
-                textAlign = TextAlign.Center, lineHeight = 22.sp
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -558,7 +593,9 @@ fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PawLinkColors.White),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Row(
@@ -570,23 +607,41 @@ fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
                         modifier = Modifier
                             .size(56.dp)
                             .clip(CircleShape)
-                            .background(PawLinkColors.PrimaryLight),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Pets, contentDescription = null,
-                            tint = PawLinkColors.Primary, modifier = Modifier.size(28.dp))
+                        Icon(
+                            Icons.Default.Pets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
                     }
                     Column {
-                        Text(formState.name.ifBlank { "Pengguna PawLink" },
-                            fontWeight = FontWeight.Bold, fontSize = 16.sp,
-                            color = PawLinkColors.OnSurface)
-                        Text(formState.selectedRole?.label ?: "Member",
-                            fontSize = 13.sp, color = PawLinkColors.Muted)
+                        Text(
+                            formState.name.ifBlank { "Pengguna PawLink" },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            formState.selectedRole?.label ?: "Member",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         if (formState.city.isNotBlank()) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.LocationOn, contentDescription = null,
-                                    tint = PawLinkColors.Muted, modifier = Modifier.size(14.dp))
-                                Text(formState.city, fontSize = 13.sp, color = PawLinkColors.Muted)
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    formState.city,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
@@ -599,13 +654,20 @@ fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PawLinkColors.PrimaryLight)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
             ) {
-                Column(modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Langkah berikutnya:", fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp, color = PawLinkColors.PrimaryDark)
-                    
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "Langkah berikutnya:",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                     ChecklistItem("Lengkapi profil kamu", isDone = true)
                     ChecklistItem("Mulai jelajahi hewan di sekitarmu")
                 }
@@ -618,18 +680,25 @@ fun Step3Success(formState: RegisterFormState, onGoToDashboard: () -> Unit) {
                 onClick = onGoToDashboard,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PawLinkColors.Primary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Icon(Icons.Default.Pets, contentDescription = null, tint = Color.White)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Masuk ke PawLink", fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp, color = Color.White)
+                Text(
+                    "Masuk ke PawLink",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Color.White
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
+
 
 @Composable
 fun PawLinkTextField(
@@ -646,42 +715,66 @@ fun PawLinkTextField(
     errorText: String = ""
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = PawLinkColors.OnSurface, modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(placeholder, color = PawLinkColors.Muted, fontSize = 14.sp) },
-            leadingIcon = { Icon(leadingIcon, contentDescription = null, tint = PawLinkColors.Primary) },
+            placeholder = {
+                Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+            },
+            leadingIcon = {
+                Icon(
+                    leadingIcon,
+                    contentDescription = null,
+                    tint = if (isError) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             trailingIcon = if (isPassword) {
                 {
                     IconButton(onClick = onTogglePassword ?: {}) {
                         Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = null,
-                            tint = PawLinkColors.Muted
+                            imageVector = if (passwordVisible) Icons.Default.Visibility
+                            else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Sembunyikan" else "Tampilkan",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             } else null,
-            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (isPassword && !passwordVisible)
+                PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true,
             isError = isError,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PawLinkColors.Primary,
-                unfocusedBorderColor = PawLinkColors.Border,
-                errorBorderColor = PawLinkColors.Error,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                errorContainerColor = MaterialTheme.colorScheme.surface
             )
         )
-        if (isError) {
-            Text(text = errorText, color = PawLinkColors.Error, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp, start = 4.dp))
+        if (isError && errorText.isNotEmpty()) {
+            Text(
+                text = errorText,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
         }
     }
 }
+
 
 @Composable
 fun ChecklistItem(text: String, isDone: Boolean = false) {
@@ -693,34 +786,37 @@ fun ChecklistItem(text: String, isDone: Boolean = false) {
         Icon(
             imageVector = if (isDone) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
             contentDescription = null,
-            tint = if (isDone) PawLinkColors.Primary else PawLinkColors.Muted,
+            tint = if (isDone) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
         Text(
             text = text,
             fontSize = 14.sp,
-            color = if (isDone) PawLinkColors.OnSurface else PawLinkColors.Muted,
+            color = if (isDone) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurfaceVariant,
             textDecoration = if (isDone) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
         )
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+
+@Preview(name = "Step 1 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step1Preview() {
-    MaterialTheme { Step1ChooseRole(RegisterFormState(), {}, {}, {}) }
+    PawLinkTheme { Step1ChooseRole(RegisterFormState(), {}, {}, {}) }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(name = "Step 2 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step2Preview() {
-    MaterialTheme { Step2DataDiri(RegisterFormState(), {}, {}, {}) }
+    PawLinkTheme { Step2DataDiri(RegisterFormState(), {}, {}, {}) }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(name = "Step 3 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step3Preview() {
-    MaterialTheme {
+    PawLinkTheme {
         Step3Success(
             formState = RegisterFormState(
                 name = "Budi Santoso",
@@ -732,8 +828,8 @@ fun Step3Preview() {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(name = "Full Register", showBackground = true, showSystemUi = true)
 @Composable
 fun RegisterScreenPreview() {
-    MaterialTheme { RegisterScreen() }
+    PawLinkTheme { RegisterScreen() }
 }
