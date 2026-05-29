@@ -39,7 +39,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yarsi.student.pawlink.ui.theme.PawLinkTheme
-
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
 
 enum class UserRole(val label: String, val description: String, val icon: ImageVector) {
     PENCARI(
@@ -64,7 +68,8 @@ data class RegisterFormState(
     val confirmPassword: String = "",
     val agreeToTerms: Boolean = false,
     val passwordVisible: Boolean = false,
-    val confirmPasswordVisible: Boolean = false
+    val confirmPasswordVisible: Boolean = false,
+    val photoUri: Uri? = null
 )
 
 @Composable
@@ -447,21 +452,45 @@ fun Step2DataDiri(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Profile Photo
-            Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                Box(
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+            val photoPicker = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent()
+            ) { uri: Uri? ->
+                uri?.let { onFormChange(formState.copy(photoUri = it)) }
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .clickable { photoPicker.launch("image/*") }  // ← klik buka galeri
+            ) {
+                // Tampilkan foto jika sudah dipilih, atau icon default
+                if (formState.photoUri != null) {
+                    AsyncImage(
+                        model = formState.photoUri,
+                        contentDescription = "Foto Profil",
+                        modifier = Modifier
+                            .size(88.dp)
+                            .clip(CircleShape),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(88.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
+
+                // Tombol kamera di pojok kanan bawah
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -479,9 +508,9 @@ fun Step2DataDiri(
                 }
             }
             Text(
-                "Upload Foto Profil",
+                if (formState.photoUri != null) "Ganti Foto" else "Upload Foto Profil",
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 

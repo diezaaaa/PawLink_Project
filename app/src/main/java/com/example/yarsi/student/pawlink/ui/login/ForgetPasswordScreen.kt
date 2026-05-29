@@ -1,5 +1,6 @@
 package com.example.yarsi.student.pawlink.ui.login
 
+import com.example.yarsi.student.pawlink.ui.theme.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,7 +64,7 @@ fun ForgotPasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFAFAFA))
+            .background(PawSurface)
     ) {
         ForgotPasswordHeader(onBack = onBack)
 
@@ -78,7 +79,7 @@ fun ForgotPasswordScreen(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFAFAFA))
+                    .background(PawSurface)
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center
             ){
@@ -96,13 +97,13 @@ fun ForgotPasswordScreen(
                 "Lupa Password?",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A1A),
+                color = PawOnSurface,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
             Text(
                 "Masukkan email yang terdaftar. Kami akan mengirimkan kode OTP untuk reset password.",
                 fontSize = 14.sp,
-                color = Color(0xFF888780),
+                color = PawGray,
                 lineHeight = 21.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -123,7 +124,7 @@ fun ForgotPasswordScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFE1F5EE))
+                    .background(PawPrimaryLight)
                     .padding(14.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -131,13 +132,13 @@ fun ForgotPasswordScreen(
                 Icon(
                     Icons.Outlined.Info,
                     contentDescription = null,
-                    tint = Color(0xFF0F6E56),
+                    tint = PawPrimaryDark,
                     modifier = Modifier.size(18.dp)
                 )
                 Text(
                     "Kode OTP berlaku selama 5 menit.",
                     fontSize = 13.sp,
-                    color = Color(0xFF0F6E56)
+                    color = PawPrimaryDark
                 )
             }
 
@@ -151,14 +152,14 @@ fun ForgotPasswordScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1D9E75),
-                    disabledContainerColor = Color(0xFFE0E0E0)
+                    containerColor = PawPrimary,
+                    disabledContainerColor = PawBorder
                 )
             ) {
                 Icon(
                     Icons.Default.Send,
                     contentDescription = null,
-                    tint = if (isEmailValid) Color.White else Color(0xFF888780),
+                    tint = if (isEmailValid) Color.White else PawGray,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -166,7 +167,7 @@ fun ForgotPasswordScreen(
                     "Kirim Kode OTP",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
-                    color = if (isEmailValid) Color.White else Color(0xFF888780)
+                    color = if (isEmailValid) Color.White else PawGray
                 )
 
                 Row(
@@ -178,13 +179,13 @@ fun ForgotPasswordScreen(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = null,
-                            tint = Color(0xFF1D9E75),
+                            tint = PawPrimary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             "Kembali ke Login",
-                            color = Color(0xFF1D9E75),
+                            color = PawPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -205,7 +206,7 @@ fun ForgotPasswordHeader(onBack: () -> Unit = {}) {
             .height(160.dp)
             .background(
                 Brush.verticalGradient(
-                    listOf(Color(0xFF0F6E56), Color(0xFF1D9E75))
+                    listOf(PawPrimaryDark, PawPrimary)
                 )
             )
     ) {
@@ -260,7 +261,7 @@ fun ForgotPasswordHeader(onBack: () -> Unit = {}) {
                 Icon(
                     Icons.Filled.Pets,
                     contentDescription = null,
-                    tint = Color(0xFF1D9E75),
+                    tint = PawPrimary,
                     modifier = Modifier.size(20.dp)
                 )
             }
