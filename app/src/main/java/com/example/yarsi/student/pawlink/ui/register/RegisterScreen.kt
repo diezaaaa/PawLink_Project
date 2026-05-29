@@ -1,6 +1,6 @@
 package com.example.yarsi.student.pawlink.ui.register
 
-import android.content.res.Configuration
+// import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -39,6 +39,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.yarsi.student.pawlink.ui.theme.PawLinkTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
+import android.util.Patterns
+import androidx.compose.runtime.collectAsState
 
 
 enum class UserRole(val label: String, val description: String, val icon: ImageVector) {
@@ -72,8 +76,24 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit = {},
     onRegisterSuccess: () -> Unit = {}
 ) {
+    val viewModel: AuthViewModel = viewModel()
+
+    val isRegisterSuccess by viewModel.isRegisterSuccess.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
     var currentStep by remember { mutableIntStateOf(1) }
     var formState by remember { mutableStateOf(RegisterFormState()) }
+
+    LaunchedEffect(isRegisterSuccess) {
+
+        if (isRegisterSuccess) {
+
+            currentStep = 3
+
+            viewModel.resetState()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -101,10 +121,14 @@ fun RegisterScreen(
                     onBack = onNavigateToLogin
                 )
                 2 -> Step2DataDiri(
+                    viewModel = viewModel,
                     formState = formState,
                     onFormChange = { formState = it },
-                    onNext = { currentStep = 3 },
-                    onBack = { currentStep = 1 }
+                    onBack = {
+                        currentStep = 1
+                    },
+                    isLoading = isLoading,
+                    errorMessage = errorMessage
                 )
                 3 -> Step3Success(
                     formState = formState,
@@ -296,7 +320,9 @@ fun Step1ChooseRole(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = onNext,
+                onClick = {
+                    onNext()
+                },
                 enabled = formState.selectedRole != null,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
@@ -412,14 +438,23 @@ fun RoleCard(role: UserRole, isSelected: Boolean, onClick: () -> Unit) {
 
 @Composable
 fun Step2DataDiri(
+    viewModel: AuthViewModel,
     formState: RegisterFormState,
     onFormChange: (RegisterFormState) -> Unit,
-    onNext: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isLoading: Boolean,
+    errorMessage: String?
 ) {
-    val isFormValid = formState.name.isNotBlank() && formState.email.isNotBlank() &&
-            formState.phone.isNotBlank() && formState.city.isNotBlank() &&
-            formState.password.isNotBlank() && formState.confirmPassword.isNotBlank() &&
+    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(formState.email).matches()
+    val isPasswordValid = formState.password.length >= 8
+
+    val isFormValid = formState.name.isNotBlank() &&
+            isEmailValid &&
+            formState.phone.isNotBlank() &&
+            formState.city.isNotBlank() &&
+            isPasswordValid &&
+            formState.confirmPassword.isNotBlank() &&
+            formState.password == formState.confirmPassword &&
             formState.agreeToTerms
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -486,10 +521,19 @@ fun Step2DataDiri(
             )
 
             PawLinkTextField(value = formState.name, onValueChange = { onFormChange(formState.copy(name = it)) }, label = "Nama Lengkap", leadingIcon = Icons.Outlined.Person, placeholder = "Masukkan nama lengkap")
-            PawLinkTextField(value = formState.email, onValueChange = { onFormChange(formState.copy(email = it)) }, label = "Email", leadingIcon = Icons.Outlined.Email, placeholder = "nama@email.com", keyboardType = KeyboardType.Email)
+            PawLinkTextField( value = formState.email, onValueChange = { onFormChange(formState.copy(email = it)) }, label = "Email", leadingIcon = Icons.Outlined.Email, placeholder = "nama@email.com", keyboardType = KeyboardType.Email, isError = formState.email.isNotEmpty() && !isEmailValid, errorText = "Format email tidak valid")
             PawLinkTextField(value = formState.phone, onValueChange = { onFormChange(formState.copy(phone = it)) }, label = "Nomor HP", leadingIcon = Icons.Outlined.Phone, placeholder = "08xxxxxxxxxx", keyboardType = KeyboardType.Phone)
             PawLinkTextField(value = formState.city, onValueChange = { onFormChange(formState.copy(city = it)) }, label = "Kota", leadingIcon = Icons.Outlined.LocationOn, placeholder = "Nama kota kamu")
-            PawLinkTextField(value = formState.password, onValueChange = { onFormChange(formState.copy(password = it)) }, label = "Password", leadingIcon = Icons.Outlined.Lock, placeholder = "Min. 8 karakter", isPassword = true, passwordVisible = formState.passwordVisible, onTogglePassword = { onFormChange(formState.copy(passwordVisible = !formState.passwordVisible)) })
+            PawLinkTextField(value = formState.password, onValueChange = { onFormChange(formState.copy(password = it)) }, label = "Password", leadingIcon = Icons.Outlined.Lock, placeholder = "Min. 8 karakter", isPassword = true, passwordVisible = formState.passwordVisible, onTogglePassword = {
+                    onFormChange(
+                        formState.copy(
+                            passwordVisible = !formState.passwordVisible
+                        )
+                    )
+                },
+                isError = formState.password.isNotEmpty() && !isPasswordValid,
+                errorText = "Password minimal 8 karakter"
+            )
             PawLinkTextField(value = formState.confirmPassword, onValueChange = { onFormChange(formState.copy(confirmPassword = it)) }, label = "Konfirmasi Password", leadingIcon = Icons.Outlined.Lock, placeholder = "Ulangi password", isPassword = true, passwordVisible = formState.confirmPasswordVisible, onTogglePassword = { onFormChange(formState.copy(confirmPasswordVisible = !formState.confirmPasswordVisible)) }, isError = formState.confirmPassword.isNotEmpty() && formState.password != formState.confirmPassword, errorText = "Password tidak cocok")
 
             // Terms checkbox
@@ -516,9 +560,25 @@ fun Step2DataDiri(
                 )
             }
 
+            if (errorMessage != null) {
+
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp
+                )
+            }
+
             Button(
-                onClick = onNext,
-                enabled = isFormValid,
+                onClick = {
+
+                    viewModel.register(
+                        name = formState.name,
+                        email = formState.email,
+                        password = formState.password
+                    )
+                },
+                enabled = isFormValid && !isLoading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -526,7 +586,36 @@ fun Step2DataDiri(
                     disabledContainerColor = MaterialTheme.colorScheme.outline
                 )
             ) {
-                Text("Buat Akun", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+
+                if (isLoading) {
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            "Membuat akun",
+                            color = Color.White
+                        )
+                    }
+
+                } else {
+
+                    Text(
+                        "Buat Akun",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -804,15 +893,34 @@ fun ChecklistItem(text: String, isDone: Boolean = false) {
 @Preview(name = "Step 1 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step1Preview() {
-    PawLinkTheme { Step1ChooseRole(RegisterFormState(), {}, {}, {}) }
+
+    PawLinkTheme {
+        Step1ChooseRole(
+            formState = RegisterFormState(),
+            onRoleSelected = {},
+            onNext = {},
+            onBack = {}
+        )
+    }
 }
 
 @Preview(name = "Step 2 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step2Preview() {
-    PawLinkTheme { Step2DataDiri(RegisterFormState(), {}, {}, {}) }
-}
 
+    val dummyViewModel: AuthViewModel = viewModel()
+
+    PawLinkTheme {
+        Step2DataDiri(
+            viewModel = dummyViewModel,
+            formState = RegisterFormState(),
+            onFormChange = {},
+            onBack = {},
+            isLoading = false,
+            errorMessage = null
+        )
+    }
+}
 @Preview(name = "Step 3 - Light", showBackground = true, showSystemUi = true)
 @Composable
 fun Step3Preview() {

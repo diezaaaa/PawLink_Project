@@ -29,7 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
+// import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,12 +49,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.text.font.Font
+// import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 
 
 @Composable
@@ -63,9 +65,11 @@ fun LoginScreen(
     onNavigateToForgetPassword: () -> Unit = {},
     onLoginSuccess: () -> Unit = {}
 ) {
+    val viewModel: AuthViewModel = viewModel()
+
     var email by remember {mutableStateOf("") }
     var password by remember {mutableStateOf("") }
-    var passwordVisible by remember {mutableStateOf("") }
+    var passwordVisible by remember {mutableStateOf(false) }
 
     val isFormValid = email.contains("@") && password.length >= 8
 
@@ -114,8 +118,8 @@ fun LoginScreen(
                 leadingIcon = Icons.Outlined.Lock,
                 placeholder = "Masukkan password",
                 isPassword = true,
-                passwordVisible = false,
-                onTogglePassword = {passwordVisible != passwordVisible}
+                passwordVisible = passwordVisible,
+                onTogglePassword = {passwordVisible = !passwordVisible}
             )
 
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -135,7 +139,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Button(
-                onClick = onLoginSuccess,
+                onClick = {
+                    viewModel.login(email, password)
+                },
                 enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
