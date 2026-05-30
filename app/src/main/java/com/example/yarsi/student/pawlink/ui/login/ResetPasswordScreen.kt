@@ -1,6 +1,5 @@
 package com.example.yarsi.student.pawlink.ui.login
 
-import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
