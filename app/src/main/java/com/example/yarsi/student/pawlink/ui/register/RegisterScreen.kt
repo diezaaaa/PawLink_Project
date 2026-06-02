@@ -73,10 +73,11 @@ data class RegisterFormState(
 
 @Composable
 fun RegisterScreen(
+    authViewModel: AuthViewModel = viewModel(),
     onNavigateToLogin: () -> Unit = {},
     onRegisterSuccess: () -> Unit = {}
 ) {
-    val viewModel: AuthViewModel = viewModel()
+    val viewModel = authViewModel
 
     val isRegisterSuccess by viewModel.isRegisterSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()

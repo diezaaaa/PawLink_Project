@@ -52,6 +52,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -139,13 +142,14 @@ val sampleTimeline = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    userName: String = "Pengguna",
+    authViewModel: AuthViewModel = viewModel(),
     onHewanClick: (String) -> Unit = {},
     onPostingClick: () -> Unit = {},
     onNotifikasiClick: () -> Unit = {},
     onProfilClick: () -> Unit = {}
 ) {
     var selectedNav by remember { mutableIntStateOf(0) }
+    val userName by authViewModel.userName.collectAsState()
     var selectedFilter by remember { mutableStateOf(FilterChip.SEMUA) }
     var searchQuery by remember { mutableStateOf("") }
 
@@ -807,6 +811,6 @@ fun DashboardBottomNav(
 @Composable
 fun DashboardScreenPreview() {
     PawLinkTheme {
-        DashboardScreen(userName = "Anisa")
+        DashboardScreen()
     }
 }

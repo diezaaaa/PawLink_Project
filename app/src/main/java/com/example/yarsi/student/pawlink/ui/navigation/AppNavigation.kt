@@ -1,6 +1,7 @@
 package com.example.yarsi.student.pawlink.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -9,6 +10,11 @@ import com.example.yarsi.student.pawlink.ui.dashboard.DashboardScreen
 import com.example.yarsi.student.pawlink.ui.login.ForgotPasswordScreen
 import com.example.yarsi.student.pawlink.ui.login.LoginScreen
 import com.example.yarsi.student.pawlink.ui.register.RegisterScreen
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 // Route constants
 
@@ -17,6 +23,10 @@ object Routes {
     const val REGISTER = "register"
     const val FORGOT_PASSWORD = "forgot_password"
     const val DASHBOARD = "dashboard"
+    const val DETAIL_HEWAN    = "detail_hewan"
+    const val POSTING_HEWAN   = "posting_hewan"
+    const val NOTIFIKASI      = "notifikasi"
+    const val PROFIL          = "profil"
 }
 
 // Nav graph
@@ -25,7 +35,9 @@ object Routes {
 fun AppNavigation(
     navController: NavHostController = rememberNavController(),
     startDestination: String = Routes.LOGIN
+
 ) {
+    val authViewModel: AuthViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -33,13 +45,14 @@ fun AppNavigation(
 
         composable(Routes.LOGIN) {
             LoginScreen(
+                authViewModel = authViewModel,
                 onNavigateToRegister = {
                     navController.navigate(Routes.REGISTER)
                 },
                 onNavigateToForgetPassword = {
                     navController.navigate(Routes.FORGOT_PASSWORD)
                 },
-                onLoginSuccess = {
+                onNavigateToLogin = {
                     navController.navigate(Routes.DASHBOARD) {
                         // Hapus Login dari back stack agar tombol Back tidak kembali ke Login
                         popUpTo(Routes.LOGIN) { inclusive = true }
@@ -50,6 +63,7 @@ fun AppNavigation(
 
         composable(Routes.REGISTER) {
             RegisterScreen(
+                authViewModel = authViewModel,
                 onNavigateToLogin = {
                     navController.popBackStack()
                 },
@@ -68,26 +82,28 @@ fun AppNavigation(
                     navController.popBackStack()
                 },
                 onOtpSent = {
-                    // TODO: navigasi ke OtpScreen saat sudah dibuat
                     navController.popBackStack()
                 }
             )
         }
 
         composable(Routes.DASHBOARD) {
+            LaunchedEffect(Unit) {
+                authViewModel.refreshUserData()
+            }
             DashboardScreen(
-                userName = "Anisa",  // TODO: ganti dengan data user dari session/ViewModel
+                authViewModel = authViewModel,
                 onHewanClick = { hewan_Id ->
-                    // TODO: navController.navigate(Routes.DETAIL_HEWAN + "/$hewanId")
+                    navController.navigate(Routes.DETAIL_HEWAN + "/$hewan_Id")
                 },
                 onPostingClick = {
-                    // TODO: navController.navigate(Routes.POSTING_HEWAN)
+                    navController.navigate(Routes.POSTING_HEWAN)
                 },
                 onNotifikasiClick = {
-                    // TODO: navController.navigate(Routes.NOTIFIKASI)
+                    navController.navigate(Routes.NOTIFIKASI)
                 },
                 onProfilClick = {
-                    // TODO: navController.navigate(Routes.PROFIL)
+                    navController.navigate(Routes.PROFIL)
                 }
             )
         }
