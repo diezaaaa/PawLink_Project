@@ -58,6 +58,17 @@ class AuthRepository {
         }
     }
 
+    suspend fun getCurrentUser(): Result<String> {
+        return try {
+            val user = AppWriteProvider.account.get()
+            Result.success(user.name)
+        } catch (e: AppwriteException) {
+            Result.failure(Exception(e.message))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun logout(): Result<String> {
 
         return try {

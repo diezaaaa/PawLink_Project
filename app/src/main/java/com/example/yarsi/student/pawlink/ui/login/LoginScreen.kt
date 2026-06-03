@@ -61,11 +61,12 @@ import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgetPassword: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {}
 ) {
-    val viewModel: AuthViewModel = viewModel()
+    val viewModel = authViewModel
 
     var email by remember {mutableStateOf("") }
     var password by remember {mutableStateOf("") }
@@ -140,7 +141,7 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    viewModel.login(email, password)
+                    onNavigateToLogin()
                 },
                 enabled = isFormValid,
                 modifier = Modifier
