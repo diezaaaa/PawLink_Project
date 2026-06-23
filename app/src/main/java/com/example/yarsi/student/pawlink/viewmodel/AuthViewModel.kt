@@ -1,5 +1,6 @@
 package com.example.yarsi.student.pawlink.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yarsi.student.pawlink.data.repository.AuthRepository
@@ -7,12 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.net.Uri
 
 class AuthViewModel : ViewModel() {
 
     private val repository = AuthRepository()
-
-
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -37,16 +37,16 @@ class AuthViewModel : ViewModel() {
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                android.util.Log.d("PawLink", "Login dipanggil: $email") // ← tambah ini
+                android.util.Log.d("PawLink", "Login dipanggil: $email")
                 val result = repository.login(email, password)
                 result
                     .onSuccess {
-                        android.util.Log.d("PawLink", "Login berhasil!") // ← tambah ini
+                        android.util.Log.d("PawLink", "Login berhasil!")
                         fetchCurrentUser()
                         _isLoginSuccess.value = true
                     }
                     .onFailure {
-                        android.util.Log.e("PawLink", "Login gagal: ${it.message}") // ← tambah ini
+                        android.util.Log.e("PawLink", "Login gagal: ${it.message}")
                         _errorMessage.value = it.message
                     }
             } finally {
@@ -54,26 +54,62 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
-    fun register(name: String, email: String, password: String) {
+
+    fun register(context: Context, name: String, email: String, password: String, phone: String, city: String, role: String, photoUri: Uri?) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                val result = repository.register(name, email, password)
-                result
-                    .onSuccess {
-                        _userName.value = name
-                        _userEmail.value = email
-                        _isRegisterSuccess.value = true
-                    }
-                    .onFailure {
-                        _errorMessage.value = it.message
-                    }
+                android.util.Log.d("PawLink", "ViewModel.register() dipanggil - photoUri = $photoUri")
+
+                val result = repository.register(
+                    context = context,
+                    name = name,
+                    email = email,
+                    password = password,
+                    phone = phone,
+                    city = city,
+                    role = role,
+                    photoUri = photoUri
+                )
+
+                result.onSuccess {
+                    android.util.Log.d("PawLink", "ViewModel: register sukses - $it")
+                    _userName.value = name
+                    _userEmail.value = email
+                    _isRegisterSuccess.value = true
+                }.onFailure {
+                    _errorMessage.value = it.message
+                    android.util.Log.e("PawLink", "ViewModel: register failed", it)
+                }
+
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+                android.util.Log.e("PawLink", "ViewModel: register crash", e)
             } finally {
                 _isLoading.value = false
             }
         }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            val result = repository.logout()
+
+            result.onSuccess {
+                _isLoginSuccess.value = false
+                _userName.value = "Pengguna"
+                _userEmail.value = ""
+            }.onFailure {
+                _errorMessage.value = it.message
+            }
+
+            _isLoading.value = false
+        }
+    }
+
     fun fetchCurrentUser() {
         viewModelScope.launch {
             val result = repository.getCurrentUser()
@@ -83,16 +119,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun refreshUserData() {
-        viewModelScope.launch {
-            val result = repository.getCurrentUser()
-            result.onSuccess { name ->
-                _userName.value = name.ifBlank { "Pengguna" }
-            }
-        }
-    }
     fun resetState() {
-
         _isLoginSuccess.value = false
         _isRegisterSuccess.value = false
         _errorMessage.value = null
