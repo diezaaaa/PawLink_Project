@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.yarsi.student.pawlink.ui.detail.DetailHewanScreen
 
 // Route constants
 
@@ -105,6 +106,13 @@ fun AppNavigation(
                 onProfilClick = {
                     navController.navigate(Routes.PROFIL)
                 }
+            )
+        }
+
+        composable(Routes.DETAIL_HEWAN + "/{hewanId}") { backStackEntry ->
+            val hewanId = backStackEntry.arguments?.getString("hewanId")
+            DetailHewanScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }
