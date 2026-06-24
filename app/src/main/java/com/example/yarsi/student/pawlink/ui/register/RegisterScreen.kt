@@ -1,6 +1,6 @@
 package com.example.yarsi.student.pawlink.ui.register
 
-// import android.content.res.Configuration
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -43,21 +43,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 import android.util.Patterns
 import androidx.compose.runtime.collectAsState
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import androidx.compose.ui.platform.LocalContext
 
-
-enum class UserRole(val label: String, val description: String, val icon: ImageVector) {
+enum class UserRole(val label: String, val value: String, val description: String, val icon: ImageVector) {
     PENCARI(
         label = "Pencari",
+        value = "pencari",
         description = "Saya ingin mengadopsi atau menemukan hewan hilang",
         icon = Icons.Outlined.Search
     ),
     PELAPOR(
         label = "Pelapor",
+        value = "pelapor",
         description = "Saya ingin melaporkan hewan hilang atau menawarkan adopsi",
         icon = Icons.Outlined.Campaign
     )
@@ -441,8 +441,6 @@ fun RoleCard(role: UserRole, isSelected: Boolean, onClick: () -> Unit) {
     }
 }
 
-
-
 @Composable
 fun Step2DataDiri(
     viewModel: AuthViewModel,
@@ -454,6 +452,17 @@ fun Step2DataDiri(
 ) {
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(formState.email).matches()
     val isPasswordValid = formState.password.length >= 8
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri ->
+
+            if (uri != null) {
+                onFormChange(
+                    formState.copy(photoUri = uri)
+                )
+            }
+        }
 
     val isFormValid = formState.name.isNotBlank() &&
             isEmailValid &&
@@ -489,29 +498,26 @@ fun Step2DataDiri(
             Spacer(modifier = Modifier.height(4.dp))
 
             // Profile Photo
-            // Profile Photo
-            val photoPicker = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.GetContent()
-            ) { uri: Uri? ->
-                uri?.let { onFormChange(formState.copy(photoUri = it)) }
-            }
-
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .clickable { photoPicker.launch("image/*") }  // ← klik buka galeri
+                    .clickable {
+                        imagePickerLauncher.launch("image/*")
+                    }
             ) {
-                // Tampilkan foto jika sudah dipilih, atau icon default
+
                 if (formState.photoUri != null) {
+
                     AsyncImage(
                         model = formState.photoUri,
-                        contentDescription = "Foto Profil",
+                        contentDescription = "Profile Photo",
                         modifier = Modifier
                             .size(88.dp)
-                            .clip(CircleShape),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            .clip(CircleShape)
                     )
+
                 } else {
+
                     Box(
                         modifier = Modifier
                             .size(88.dp)
@@ -528,7 +534,6 @@ fun Step2DataDiri(
                     }
                 }
 
-                // Tombol kamera di pojok kanan bawah
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -545,10 +550,14 @@ fun Step2DataDiri(
                     )
                 }
             }
+
             Text(
-                if (formState.photoUri != null) "Ganti Foto" else "Upload Foto Profil",
+                text = if (formState.photoUri == null)
+                    "Upload Foto Profil"
+                else
+                    "Foto Dipilih",
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
 
@@ -601,13 +610,19 @@ fun Step2DataDiri(
                 )
             }
 
+            val context = LocalContext.current
             Button(
                 onClick = {
 
                     viewModel.register(
+                        context = context,
                         name = formState.name,
                         email = formState.email,
-                        password = formState.password
+                        password = formState.password,
+                        phone = formState.phone,
+                        city = formState.city,
+                        role = formState.selectedRole?.value ?: "pencari",
+                        photoUri = formState.photoUri
                     )
                 },
                 enabled = isFormValid && !isLoading,

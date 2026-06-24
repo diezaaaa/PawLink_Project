@@ -90,7 +90,7 @@ fun AppNavigation(
 
         composable(Routes.DASHBOARD) {
             LaunchedEffect(Unit) {
-                authViewModel.refreshUserData()
+                authViewModel.fetchCurrentUser()
             }
             DashboardScreen(
                 authViewModel = authViewModel,
