@@ -179,10 +179,16 @@ class AuthRepository {
         }
     }
 
-    suspend fun getCurrentUser(): Result<String> {
+    suspend fun getCurrentUser(): Result<Pair<String, String>> {
         return try {
             val user = AppWriteProvider.account.get()
-            Result.success(user.name)
+            val doc = AppWriteProvider.databases.getDocument(
+                databaseId = "6a152d050026fd474a91",
+                collectionId = "users",
+                documentId = user.id
+            )
+            val role = doc.data["role"]?.toString()?.lowercase() ?: "pencari"
+            Result.success(Pair(user.name, role))
         } catch (e: AppwriteException) {
             Result.failure(Exception(e.message))
         } catch (e: Exception) {

@@ -11,11 +11,15 @@ import com.example.yarsi.student.pawlink.ui.login.ForgotPasswordScreen
 import com.example.yarsi.student.pawlink.ui.login.LoginScreen
 import com.example.yarsi.student.pawlink.ui.register.RegisterScreen
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.yarsi.student.pawlink.ui.detail.DetailHewanScreen
+import com.example.yarsi.student.pawlink.ui.posting.PostingHewanScreen
+import androidx.compose.runtime.getValue
+import com.example.yarsi.student.pawlink.ui.profil.ProfilScreen
 
 // Route constants
 
@@ -113,6 +117,37 @@ fun AppNavigation(
             val hewanId = backStackEntry.arguments?.getString("hewanId")
             DetailHewanScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.POSTING_HEWAN) {
+            val userRole by authViewModel.userRole.collectAsState()
+            PostingHewanScreen(
+                userRole = userRole,
+                onBack = { navController.popBackStack() },
+                onPostingSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.PROFIL) {
+            val userName by authViewModel.userName.collectAsState()
+            val userRole by authViewModel.userRole.collectAsState()
+            val userEmail by authViewModel.userEmail.collectAsState()
+
+            ProfilScreen(
+                nama = userName,
+                email = userEmail,
+                role = userRole,
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onSaveProfile = { nama, noHp, kota ->
+                    // TODO: update ke Appwrite nanti
+                }
             )
         }
     }

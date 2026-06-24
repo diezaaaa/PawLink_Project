@@ -29,6 +29,9 @@ class AuthViewModel : ViewModel() {
     private val _userName = MutableStateFlow("Pengguna")
     val userName: StateFlow<String> = _userName.asStateFlow()
 
+    private val _userRole = MutableStateFlow("pencari") // default pencari
+    val userRole: StateFlow<String> = _userRole.asStateFlow()
+
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail.asStateFlow()
 
@@ -113,8 +116,9 @@ class AuthViewModel : ViewModel() {
     fun fetchCurrentUser() {
         viewModelScope.launch {
             val result = repository.getCurrentUser()
-            result.onSuccess { name ->
+            result.onSuccess { (name, role) ->
                 _userName.value = name.ifBlank { "Pengguna" }
+                _userRole.value = role
             }
         }
     }
