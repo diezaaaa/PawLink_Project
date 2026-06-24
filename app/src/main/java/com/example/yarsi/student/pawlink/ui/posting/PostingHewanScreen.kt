@@ -34,8 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.yarsi.student.pawlink.ui.theme.*
+import com.example.yarsi.student.pawlink.viewmodel.HewanViewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.yarsi.student.pawlink.data.repository.HewanModel
 
-// ─── Tipe Posting ─────────────────────────────────────────────────────────────
+// Tipe Posting
 enum class TipePosting(
     val label: String,
     val description: String,
@@ -66,7 +69,7 @@ enum class TipePosting(
     )
 }
 
-// ─── Form State ───────────────────────────────────────────────────────────────
+// Form State
 data class PostingFormState(
     val tipePosting: TipePosting? = null,
     val namaHewan: String = "",
@@ -80,20 +83,22 @@ data class PostingFormState(
     val isDetectingLocation: Boolean = false
 )
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+// Main Screen
 @Composable
 fun PostingHewanScreen(
-    userRole: String = "pencari", // "pelapor" atau "pencari"
+    userRole: String = "pelapor", // "pelapor" atau "pencari"
     onBack: () -> Unit = {},
-    onPostingSuccess: () -> Unit = {}
+    onPostingSuccess: () -> Unit = {},
+    hewanViewModel: HewanViewModel? = null
 ) {
+    val context = LocalContext.current
     var formState by remember { mutableStateOf(PostingFormState()) }
     var currentStep by remember { mutableIntStateOf(1) } // 1: pilih tipe, 2: isi form
 
     // Filter tipe posting berdasarkan role
     val availableTipes = remember(userRole) {
         if (userRole.lowercase() == "pencari") {
-            listOf(TipePosting.ADOPSI, TipePosting.HILANG, TipePosting.DITEMUKAN) // pencari hanya bisa lapor ditemukan
+            listOf(TipePosting.DITEMUKAN) // pencari hanya bisa lapor ditemukan
         } else {
             listOf(TipePosting.ADOPSI, TipePosting.HILANG, TipePosting.DITEMUKAN)
         }
@@ -125,13 +130,49 @@ fun PostingHewanScreen(
             IsiFormPosting(
                 formState = formState,
                 onFormChange = { formState = it },
-                onSubmit = onPostingSuccess
+                onSubmit = {
+                    android.util.Log.d("PawLink", "Tombol Publish ditekan")
+                    val photoUri = formState.photoUri ?: return@IsiFormPosting
+
+                    val hewan = HewanModel(
+                        userId = "",
+                        name = formState.namaHewan,
+                        type = formState.jenisHewan,
+                        breed = formState.ras,
+                        age = formState.usia,
+                        gender = formState.jenisKelamin,
+                        description = formState.deskripsi,
+
+                        status = when (formState.tipePosting) {
+                            TipePosting.ADOPSI -> "tersedia"
+                            TipePosting.HILANG -> "hilang"
+                            TipePosting.DITEMUKAN -> "ditemukan"
+                            else -> "tersedia"
+                        },
+
+                        postType = when (formState.tipePosting) {
+                            TipePosting.ADOPSI -> "adopsi"
+                            TipePosting.HILANG -> "hilang"
+                            TipePosting.DITEMUKAN -> "ditemukan"
+                            else -> ""
+                        },
+
+                        latitude = 0.0,
+                        longitude = 0.0
+                    )
+
+                    hewanViewModel?.publishHewan(
+                        context = context,
+                        hewan = hewan,
+                        imageUri = photoUri
+                    )
+                }
             )
         }
     }
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
+// Header
 @Composable
 fun PostingHeader(
     currentStep: Int,
@@ -202,7 +243,7 @@ fun PostingHeader(
     }
 }
 
-// ─── Step 1: Pilih Tipe Posting ───────────────────────────────────────────────
+// Step 1: Pilih Tipe Posting
 @Composable
 fun PilihTipePosting(
     availableTipes: List<TipePosting>,
@@ -331,7 +372,7 @@ fun TipePostingCard(
     }
 }
 
-// ─── Step 2: Isi Form Posting ─────────────────────────────────────────────────
+// Step 2: Isi Form Posting
 @Composable
 fun IsiFormPosting(
     formState: PostingFormState,
@@ -495,7 +536,7 @@ fun IsiFormPosting(
     }
 }
 
-// ─── Foto Upload Section ──────────────────────────────────────────────────────
+// Foto Upload Section
 @Composable
 fun FotoUploadSection(
     photoUri: Uri?,
@@ -571,7 +612,7 @@ fun FotoUploadSection(
     }
 }
 
-// ─── Lokasi Section ───────────────────────────────────────────────────────────
+// Lokasi Section
 @Composable
 fun LokasiSection(
     lokasi: String,
@@ -629,7 +670,7 @@ fun LokasiSection(
     }
 }
 
-// ─── Jenis Kelamin Dropdown ───────────────────────────────────────────────────
+// Jenis Kelamin Dropdown
 @Composable
 fun JenisKelaminDropdown(
     selected: String,
@@ -687,7 +728,7 @@ fun JenisKelaminDropdown(
     }
 }
 
-// ─── Reusable TextField ───────────────────────────────────────────────────────
+// Reusable TextField
 @Composable
 fun PostingTextField(
     value: String,
@@ -730,20 +771,20 @@ fun PostingTextField(
     }
 }
 
-// ─── Previews ─────────────────────────────────────────────────────────────────
-@Preview(name = "Pilih Tipe - Pencari", showBackground = true, showSystemUi = true)
+// Previews
+@Preview(name = "Pilih Tipe - Pelapor", showBackground = true, showSystemUi = true)
 @Composable
 fun PostingPelaporPreview() {
     PawLinkTheme {
-        PostingHewanScreen(userRole = "pencari")
+        PostingHewanScreen(userRole = "pelapor")
     }
 }
 
-@Preview(name = "Pilih Tipe - Pelapor", showBackground = true, showSystemUi = true)
+@Preview(name = "Pilih Tipe - Pencari", showBackground = true, showSystemUi = true)
 @Composable
 fun PostingPencariPreview() {
     PawLinkTheme {
-        PostingHewanScreen(userRole = "pelapor")
+        PostingHewanScreen(userRole = "pencari")
     }
 }
 
@@ -752,7 +793,7 @@ fun PostingPencariPreview() {
 @Composable
 fun PostingDarkPreview() {
     PawLinkTheme(darkTheme = true) {
-        PostingHewanScreen(userRole = "pencari")
+        PostingHewanScreen(userRole = "pelapor")
     }
 }
 @Preview(name = "Form Adopsi", showBackground = true, showSystemUi = true)
