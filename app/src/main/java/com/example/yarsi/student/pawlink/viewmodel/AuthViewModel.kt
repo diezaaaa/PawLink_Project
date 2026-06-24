@@ -129,4 +129,9 @@ class AuthViewModel : ViewModel() {
         _errorMessage.value = null
     }
 
+    suspend fun getCurrentUserId(): String? {
+        return repository
+            .getCurrentUserId()
+            .getOrNull()
+    }
 }

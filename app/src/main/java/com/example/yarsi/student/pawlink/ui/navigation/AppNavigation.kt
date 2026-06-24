@@ -10,7 +10,6 @@ import com.example.yarsi.student.pawlink.ui.dashboard.DashboardScreen
 import com.example.yarsi.student.pawlink.ui.login.ForgotPasswordScreen
 import com.example.yarsi.student.pawlink.ui.login.LoginScreen
 import com.example.yarsi.student.pawlink.ui.register.RegisterScreen
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
@@ -20,6 +19,7 @@ import com.example.yarsi.student.pawlink.ui.detail.DetailHewanScreen
 import com.example.yarsi.student.pawlink.ui.posting.PostingHewanScreen
 import androidx.compose.runtime.getValue
 import com.example.yarsi.student.pawlink.ui.profil.ProfilScreen
+import com.example.yarsi.student.pawlink.viewmodel.HewanViewModel
 
 // Route constants
 
@@ -43,6 +43,7 @@ fun AppNavigation(
 
 ) {
     val authViewModel: AuthViewModel = viewModel()
+    val hewanViewModel: HewanViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -122,8 +123,10 @@ fun AppNavigation(
 
         composable(Routes.POSTING_HEWAN) {
             val userRole by authViewModel.userRole.collectAsState()
+
             PostingHewanScreen(
                 userRole = userRole,
+                hewanViewModel = hewanViewModel,
                 onBack = { navController.popBackStack() },
                 onPostingSuccess = { navController.popBackStack() }
             )
