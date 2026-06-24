@@ -46,6 +46,7 @@ class AuthViewModel : ViewModel() {
                     .onSuccess {
                         android.util.Log.d("PawLink", "Login berhasil!")
                         fetchCurrentUser()
+                        _userEmail.value = email
                         _isLoginSuccess.value = true
                     }
                     .onFailure {

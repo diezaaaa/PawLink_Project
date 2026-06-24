@@ -33,6 +33,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -47,6 +48,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +68,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.yarsi.student.pawlink.data.repository.HewanModel
 import com.example.yarsi.student.pawlink.ui.theme.PawAmber
 import com.example.yarsi.student.pawlink.ui.theme.PawAmberLight
 import com.example.yarsi.student.pawlink.ui.theme.PawBlue
@@ -74,6 +77,7 @@ import com.example.yarsi.student.pawlink.ui.theme.PawLinkTheme
 import com.example.yarsi.student.pawlink.ui.theme.PawPrimary
 import com.example.yarsi.student.pawlink.ui.theme.PawPrimaryDark
 import com.example.yarsi.student.pawlink.ui.theme.PawPrimaryLight
+import com.example.yarsi.student.pawlink.viewmodel.HewanViewModel
 
 
 // Data models
@@ -143,6 +147,7 @@ val sampleTimeline = listOf(
 @Composable
 fun DashboardScreen(
     authViewModel: AuthViewModel = viewModel(),
+    hewanViewModel: HewanViewModel = viewModel(),
     onHewanClick: (String) -> Unit = {},
     onPostingClick: () -> Unit = {},
     onNotifikasiClick: () -> Unit = {},
@@ -153,14 +158,29 @@ fun DashboardScreen(
     var selectedFilter by remember { mutableStateOf(FilterChip.SEMUA) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val filteredHewan = remember(selectedFilter) {
-        when (selectedFilter) {
-            FilterChip.SEMUA -> sampleHewan
-            FilterChip.ADOPSI -> sampleHewan.filter { it.status == HewanStatus.TERSEDIA }
-            FilterChip.HILANG -> sampleHewan.filter { it.status == HewanStatus.HILANG }
-            FilterChip.KUCING -> sampleHewan.filter { it.jenis == "Kucing" }
-            FilterChip.ANJING -> sampleHewan.filter { it.jenis == "Anjing" }
-        }
+    val uiState by hewanViewModel.uiState.collectAsState()
+
+    // Trigger load saat pertama masuk
+    LaunchedEffect(Unit) {
+        hewanViewModel.loadSemuaHewan()
+    }
+
+    val filteredHewan = remember(uiState.hewanList, selectedFilter, searchQuery) {
+        uiState.hewanList
+            .let { list ->
+                when (selectedFilter) {
+                    FilterChip.SEMUA   -> list
+                    FilterChip.ADOPSI  -> list.filter { it.status == "tersedia" }
+                    FilterChip.HILANG  -> list.filter { it.status == "hilang" }
+                    FilterChip.KUCING  -> list.filter { it.type.equals("kucing", ignoreCase = true) }
+                    FilterChip.ANJING  -> list.filter { it.type.equals("anjing", ignoreCase = true) }
+                }
+            }
+            .filter { hewan ->
+                searchQuery.isBlank() ||
+                        hewan.name.contains(searchQuery, ignoreCase = true) ||
+                        hewan.type.contains(searchQuery, ignoreCase = true)
+            }
     }
 
     Scaffold(
@@ -193,17 +213,26 @@ fun DashboardScreen(
                 onFilterSelected = { selectedFilter = it }
             )
 
-            StatistikRow()
-
             SectionHeader(
                 title = "Terdekat dari kamu",
                 onLihatSemua = {}
             )
 
-            HewanCardRow(
-                hewanList = filteredHewan,
-                onHewanClick = onHewanClick
-            )
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = PawPrimary)
+                }
+            } else {
+                HewanCardRow(
+                    hewanList = filteredHewan,
+                    onHewanClick = onHewanClick
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -417,35 +446,20 @@ fun FilterRow(
 // Statistik row
 
 @Composable
-fun StatistikRow() {
+fun StatistikRow(
+    tersedia: Int,
+    hilang: Int,
+    ditemukan: Int
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        StatCard(
-            angka = "24",
-            label = "Tersedia",
-            angkaColor = PawPrimary,
-            bgColor = PawPrimaryLight,
-            showDot = true,
-            modifier = Modifier.weight(1f)
-        )
-        StatCard(
-            angka = "8",
-            label = "Hilang",
-            angkaColor = PawAmber,
-            bgColor = PawAmberLight,
-            modifier = Modifier.weight(1f)
-        )
-        StatCard(
-            angka = "5",
-            label = "Ditemukan",
-            angkaColor = PawBlue,
-            bgColor = PawBlueLight,
-            modifier = Modifier.weight(1f)
-        )
+        StatCard("$tersedia",  "Tersedia",  PawPrimary, PawPrimaryLight, showDot = true, modifier = Modifier.weight(1f))
+        StatCard("$hilang",   "Hilang",    PawAmber,   PawAmberLight,   modifier = Modifier.weight(1f))
+        StatCard("$ditemukan","Ditemukan", PawBlue,    PawBlueLight,    modifier = Modifier.weight(1f))
     }
 }
 
@@ -532,9 +546,20 @@ fun SectionHeader(title: String, onLihatSemua: () -> Unit) {
 
 @Composable
 fun HewanCardRow(
-    hewanList: List<HewanItem>,
+    hewanList: List<HewanModel>,
     onHewanClick: (String) -> Unit
 ) {
+
+
+    if (hewanList.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(120.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Belum ada data hewan", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        return
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -549,29 +574,29 @@ fun HewanCardRow(
 }
 
 @Composable
-fun HewanCard(hewan: HewanItem, onClick: () -> Unit) {
+fun HewanCard(hewan: HewanModel, onClick: () -> Unit) {
+    val status = when (hewan.status.lowercase()) {
+        "tersedia"  -> HewanStatus.TERSEDIA
+        "hilang"    -> HewanStatus.HILANG
+        "ditemukan" -> HewanStatus.DITEMUKAN
+        "teradopsi" -> HewanStatus.TERADOPSI
+        else        -> HewanStatus.TERSEDIA
+    }
+
     Card(
         onClick = onClick,
         modifier = Modifier.width(150.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column {
-            // Foto placeholder
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
                     .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                hewan.warnaPelapor.copy(alpha = 0.7f),
-                                hewan.warnaPelapor
-                            )
-                        )
+                        Brush.verticalGradient(listOf(PawPrimary.copy(alpha = 0.7f), PawPrimary))
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -581,27 +606,20 @@ fun HewanCard(hewan: HewanItem, onClick: () -> Unit) {
                     tint = Color.White.copy(alpha = 0.5f),
                     modifier = Modifier.size(36.dp)
                 )
-                // Badge status
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(hewan.status.bgColor)
+                        .background(status.bgColor)
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
-                    Text(
-                        hewan.status.label,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = hewan.status.color
-                    )
+                    Text(status.label, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = status.color)
                 }
             }
-
             Column(modifier = Modifier.padding(10.dp)) {
                 Text(
-                    hewan.nama,
+                    hewan.name.ifBlank { "Tanpa nama" },
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -610,7 +628,7 @@ fun HewanCard(hewan: HewanItem, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    "${hewan.jenis} · ${hewan.usia} · ${hewan.lokasi}",
+                    "${hewan.type} · ${hewan.age}",
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

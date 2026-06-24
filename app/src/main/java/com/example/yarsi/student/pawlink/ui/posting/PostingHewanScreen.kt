@@ -83,7 +83,7 @@ data class PostingFormState(
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 @Composable
 fun PostingHewanScreen(
-    userRole: String = "pelapor", // "pelapor" atau "pencari"
+    userRole: String = "pencari", // "pelapor" atau "pencari"
     onBack: () -> Unit = {},
     onPostingSuccess: () -> Unit = {}
 ) {
@@ -92,8 +92,8 @@ fun PostingHewanScreen(
 
     // Filter tipe posting berdasarkan role
     val availableTipes = remember(userRole) {
-        if (userRole == "pencari") {
-            listOf(TipePosting.DITEMUKAN) // pencari hanya bisa lapor ditemukan
+        if (userRole.lowercase() == "pencari") {
+            listOf(TipePosting.ADOPSI, TipePosting.HILANG, TipePosting.DITEMUKAN) // pencari hanya bisa lapor ditemukan
         } else {
             listOf(TipePosting.ADOPSI, TipePosting.HILANG, TipePosting.DITEMUKAN)
         }
@@ -731,19 +731,19 @@ fun PostingTextField(
 }
 
 // ─── Previews ─────────────────────────────────────────────────────────────────
-@Preview(name = "Pilih Tipe - Pelapor", showBackground = true, showSystemUi = true)
+@Preview(name = "Pilih Tipe - Pencari", showBackground = true, showSystemUi = true)
 @Composable
 fun PostingPelaporPreview() {
     PawLinkTheme {
-        PostingHewanScreen(userRole = "pelapor")
+        PostingHewanScreen(userRole = "pencari")
     }
 }
 
-@Preview(name = "Pilih Tipe - Pencari", showBackground = true, showSystemUi = true)
+@Preview(name = "Pilih Tipe - Pelapor", showBackground = true, showSystemUi = true)
 @Composable
 fun PostingPencariPreview() {
     PawLinkTheme {
-        PostingHewanScreen(userRole = "pencari")
+        PostingHewanScreen(userRole = "pelapor")
     }
 }
 
@@ -752,7 +752,7 @@ fun PostingPencariPreview() {
 @Composable
 fun PostingDarkPreview() {
     PawLinkTheme(darkTheme = true) {
-        PostingHewanScreen(userRole = "pelapor")
+        PostingHewanScreen(userRole = "pencari")
     }
 }
 @Preview(name = "Form Adopsi", showBackground = true, showSystemUi = true)

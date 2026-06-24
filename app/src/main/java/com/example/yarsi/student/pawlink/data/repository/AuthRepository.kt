@@ -182,20 +182,26 @@ class AuthRepository {
     suspend fun getCurrentUser(): Result<Pair<String, String>> {
         return try {
             val user = AppWriteProvider.account.get()
+            Log.d("PawLink", "getCurrentUser - user.name = ${user.name}, user.id = ${user.id}")
+
             val doc = AppWriteProvider.databases.getDocument(
                 databaseId = "6a152d050026fd474a91",
                 collectionId = "users",
                 documentId = user.id
             )
+            Log.d("PawLink", "getCurrentUser - doc name = ${doc.data["name"]}")
+
+            val name = doc.data["name"]?.toString() ?: user.name // ← ambil dari doc dulu
             val role = doc.data["role"]?.toString()?.lowercase() ?: "pencari"
-            Result.success(Pair(user.name, role))
+            Result.success(Pair(name, role))
         } catch (e: AppwriteException) {
+            Log.e("PawLink", "getCurrentUser failed: ${e.message}")
             Result.failure(Exception(e.message))
         } catch (e: Exception) {
+            Log.e("PawLink", "getCurrentUser failed: ${e.message}")
             Result.failure(e)
         }
     }
-
     suspend fun logout(): Result<String> {
         return try {
             AppWriteProvider.account.deleteSession("current")
