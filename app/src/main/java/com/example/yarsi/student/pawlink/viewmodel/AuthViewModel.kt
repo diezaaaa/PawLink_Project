@@ -34,6 +34,8 @@ class AuthViewModel : ViewModel() {
 
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail.asStateFlow()
+    private val _userId = MutableStateFlow("")
+    val userId: StateFlow<String> = _userId.asStateFlow()
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
@@ -119,6 +121,13 @@ class AuthViewModel : ViewModel() {
             result.onSuccess { (name, role) ->
                 _userName.value = name.ifBlank { "Pengguna" }
                 _userRole.value = role
+            }
+            // Ambil userId langsung dari account
+            try {
+                val user = com.example.yarsi.student.pawlink.config.AppWriteProvider.account.get()
+                _userId.value = user.id
+            } catch (e: Exception) {
+                android.util.Log.e("PawLink", "Gagal ambil userId: ${e.message}")
             }
         }
     }

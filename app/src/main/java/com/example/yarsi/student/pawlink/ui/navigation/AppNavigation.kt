@@ -20,6 +20,8 @@ import com.example.yarsi.student.pawlink.ui.detail.DetailHewanScreen
 import com.example.yarsi.student.pawlink.ui.posting.PostingHewanScreen
 import androidx.compose.runtime.getValue
 import com.example.yarsi.student.pawlink.ui.profil.ProfilScreen
+import com.example.yarsi.student.pawlink.ui.notifikasi.NotifikasiScreen
+import com.example.yarsi.student.pawlink.viewmodel.NotifikasiViewModel
 
 // Route constants
 
@@ -148,6 +150,15 @@ fun AppNavigation(
                 onSaveProfile = { nama, noHp, kota ->
                     // TODO: update ke Appwrite nanti
                 }
+            )
+        }
+        composable(Routes.NOTIFIKASI) {  // ← NOTIFIKASI sejajar dengan PROFIL
+            val notifikasiViewModel: NotifikasiViewModel = viewModel()
+            val userId by authViewModel.userId.collectAsState()
+            NotifikasiScreen(
+                userId = userId,
+                notifikasiViewModel = notifikasiViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }
