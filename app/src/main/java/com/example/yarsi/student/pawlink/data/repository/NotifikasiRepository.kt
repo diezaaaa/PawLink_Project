@@ -52,17 +52,17 @@ class NotifikasiRepository {
                         val (tipe, judul, pesan) = when (status) {
                             "approved" -> Triple(
                                 TipeNotifikasi.ADOPSI_DITERIMA,
-                                "Adopsi Diterima ✅",
+                                "Adopsi Diterima",
                                 "Pengajuan adopsi untuk $animalName telah disetujui."
                             )
                             "rejected" -> Triple(
                                 TipeNotifikasi.ADOPSI_DITOLAK,
-                                "Adopsi Ditolak ❌",
+                                "Adopsi Ditolak",
                                 "Pengajuan adopsi untuk $animalName ditolak."
                             )
                             else -> Triple(
                                 TipeNotifikasi.ADOPSI_DITERIMA,
-                                "Pengajuan Adopsi Baru 🐾",
+                                "Pengajuan Adopsi Baru",
                                 "Ada seseorang yang ingin mengadopsi $animalName."
                             )
                         }
@@ -107,7 +107,7 @@ class NotifikasiRepository {
                                 NotifikasiModel(
                                     id = doc.id,
                                     tipe = TipeNotifikasi.HEWAN_DITEMUKAN,
-                                    judul = "Hewan Ditemukan 📍",
+                                    judul = "Hewan Ditemukan",
                                     pesan = data["description"]?.toString()
                                         ?: "$animalName dilaporkan ditemukan di suatu lokasi.",
                                     animalId = animalId,
@@ -145,7 +145,7 @@ class NotifikasiRepository {
                             NotifikasiModel(
                                 id = "post_${doc.id}",
                                 tipe = TipeNotifikasi.POSTINGAN_BARU,
-                                judul = "Postingan Baru 🆕",
+                                judul = "Postingan Baru",
                                 pesan = "$name ($type) baru saja diposting di sekitar kamu.",
                                 animalId = doc.id,
                                 animalName = name,
@@ -171,7 +171,7 @@ class NotifikasiRepository {
     }
 }
 
-// ── Tipe notifikasi ───────────────────────────────────────────────────────────
+// Tipe notifikasi
 
 enum class TipeNotifikasi {
     ADOPSI_DITERIMA,
@@ -180,8 +180,7 @@ enum class TipeNotifikasi {
     POSTINGAN_BARU
 }
 
-// ── Model ─────────────────────────────────────────────────────────────────────
-
+// Model
 data class NotifikasiModel(
     val id: String,
     val tipe: TipeNotifikasi,

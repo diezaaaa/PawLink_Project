@@ -152,9 +152,19 @@ fun PostingHewanScreen(
                     android.util.Log.d("PawLink", "Tombol Publish ditekan")
                     val photoUri = formState.photoUri ?: return@IsiFormPosting
 
+                    val helperNamaHewan =
+                        if (
+                            formState.tipePosting == TipePosting.DITEMUKAN &&
+                            formState.namaHewan.isBlank()
+                        ) {
+                            "Nama tidak diketahui"
+                        } else {
+                            formState.namaHewan
+                        }
+
                     val hewan = HewanModel(
                         userId = userId,
-                        name = formState.namaHewan,
+                        name = helperNamaHewan,
                         type = formState.jenisHewan,
                         breed = formState.ras,
                         age = formState.usia,

@@ -21,7 +21,7 @@ data class LokasiResult(
 
 object LocationHelper {
 
-    // ─── Cek apakah permission lokasi sudah diberikan ─────────────────────────
+    // Cek apakah permission lokasi sudah diberikan
     fun isLocationPermissionGranted(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
@@ -48,7 +48,7 @@ object LocationHelper {
         return earthRadius * c
     }
 
-    // ─── Ambil lokasi saat ini ─────────────────────────────────────────────────
+    // Ambil lokasi saat ini
     suspend fun getCurrentLocation(context: Context): Result<LokasiResult> {
         if (!isLocationPermissionGranted(context)) {
             return Result.failure(Exception("Izin lokasi belum diberikan."))
@@ -96,7 +96,7 @@ object LocationHelper {
         }
     }
 
-    // ─── Konversi koordinat ke nama alamat ────────────────────────────────────
+    // Konversi koordinat ke nama alamat
     private fun getAlamatFromKoordinat(
         context: Context,
         latitude: Double,
@@ -124,7 +124,7 @@ object LocationHelper {
         }
     }
 
-    // ─── Format alamat ────────────────────────────────────────────────────────
+    // Format alamat
     private fun formatAlamat(address: android.location.Address?): String? {
         if (address == null) return null
 

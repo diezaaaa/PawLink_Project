@@ -6,7 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 
-// ─── State permission lokasi ──────────────────────────────────────────────────
+// State permission lokasi
 data class LocationPermissionState(
     val isGranted: Boolean,
     val requestPermission: () -> Unit
