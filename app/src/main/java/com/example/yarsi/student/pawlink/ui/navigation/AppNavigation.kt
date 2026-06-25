@@ -10,7 +10,6 @@ import com.example.yarsi.student.pawlink.ui.dashboard.DashboardScreen
 import com.example.yarsi.student.pawlink.ui.login.ForgotPasswordScreen
 import com.example.yarsi.student.pawlink.ui.login.LoginScreen
 import com.example.yarsi.student.pawlink.ui.register.RegisterScreen
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
@@ -20,8 +19,7 @@ import com.example.yarsi.student.pawlink.ui.detail.DetailHewanScreen
 import com.example.yarsi.student.pawlink.ui.posting.PostingHewanScreen
 import androidx.compose.runtime.getValue
 import com.example.yarsi.student.pawlink.ui.profil.ProfilScreen
-import com.example.yarsi.student.pawlink.ui.notifikasi.NotifikasiScreen
-import com.example.yarsi.student.pawlink.viewmodel.NotifikasiViewModel
+import com.example.yarsi.student.pawlink.viewmodel.HewanViewModel
 
 // Route constants
 
@@ -45,6 +43,7 @@ fun AppNavigation(
 
 ) {
     val authViewModel: AuthViewModel = viewModel()
+    val hewanViewModel: HewanViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = startDestination
@@ -97,7 +96,16 @@ fun AppNavigation(
         composable(Routes.DASHBOARD) {
             LaunchedEffect(Unit) {
                 authViewModel.fetchCurrentUser()
+                hewanViewModel.loadSemuaHewan()
+                hewanViewModel.loadAktivitasTerbaru()
             }
+
+            LaunchedEffect(hewanViewModel.uiState.collectAsState().value.isPostingSuccess) {
+                if (hewanViewModel.uiState.value.isPostingSuccess) {
+                    hewanViewModel.loadSemuaHewan()
+                }
+            }
+
             DashboardScreen(
                 authViewModel = authViewModel,
                 onHewanClick = { hewan_Id ->
@@ -116,31 +124,46 @@ fun AppNavigation(
         }
 
         composable(Routes.DETAIL_HEWAN + "/{hewanId}") { backStackEntry ->
-            val hewanId = backStackEntry.arguments?.getString("hewanId")
+            val hewanId = backStackEntry.arguments?.getString("hewanId") ?: ""
+            val hewanViewModel: HewanViewModel = viewModel()
             DetailHewanScreen(
+                hewanId = hewanId,
+                hewanViewModel = hewanViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Routes.POSTING_HEWAN) {
             val userRole by authViewModel.userRole.collectAsState()
+            val userCity by authViewModel.userCity.collectAsState()
+            val userId by authViewModel.userId.collectAsState()
+
             PostingHewanScreen(
                 userRole = userRole,
+                userId = userId,
+                userCity = userCity,
+                hewanViewModel = hewanViewModel,
                 onBack = { navController.popBackStack() },
                 onPostingSuccess = { navController.popBackStack() }
             )
         }
 
         composable(Routes.PROFIL) {
-            val userName by authViewModel.userName.collectAsState()
-            val userRole by authViewModel.userRole.collectAsState()
-            val userEmail by authViewModel.userEmail.collectAsState()
+            val userName     by authViewModel.userName.collectAsState()
+            val userRole     by authViewModel.userRole.collectAsState()
+            val userEmail    by authViewModel.userEmail.collectAsState()
+            val userPhone    by authViewModel.userPhone.collectAsState()    // tambah
+            val userCity     by authViewModel.userCity.collectAsState()     // tambah
+            val userPhotoUrl by authViewModel.userPhotoUrl.collectAsState() // tambah
 
             ProfilScreen(
-                nama = userName,
-                email = userEmail,
-                role = userRole,
-                onBack = { navController.popBackStack() },
+                nama     = userName,
+                email    = userEmail,
+                noHp     = userPhone,    // sebelumnya pakai default
+                kota     = userCity,     // sebelumnya pakai default
+                role     = userRole,
+                photoUrl = userPhotoUrl, // sebelumnya pakai default
+                onBack   = { navController.popBackStack() },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate(Routes.LOGIN) {
@@ -148,17 +171,9 @@ fun AppNavigation(
                     }
                 },
                 onSaveProfile = { nama, noHp, kota ->
-                    // TODO: update ke Appwrite nanti
+                    authViewModel.updateProfile(nama, noHp, kota)
+                    authViewModel.fetchCurrentUser()
                 }
-            )
-        }
-        composable(Routes.NOTIFIKASI) {  // ← NOTIFIKASI sejajar dengan PROFIL
-            val notifikasiViewModel: NotifikasiViewModel = viewModel()
-            val userId by authViewModel.userId.collectAsState()
-            NotifikasiScreen(
-                userId = userId,
-                notifikasiViewModel = notifikasiViewModel,
-                onBack = { navController.popBackStack() }
             )
         }
     }

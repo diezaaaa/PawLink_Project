@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 // import androidx.compose.material3.MaterialTheme.colorScheme
@@ -57,6 +58,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 
 
 @Composable
@@ -73,6 +76,16 @@ fun LoginScreen(
     var passwordVisible by remember {mutableStateOf(false) }
 
     val isFormValid = email.contains("@") && password.length >= 8
+    val isLoginSuccess by viewModel.isLoginSuccess.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    LaunchedEffect(isLoginSuccess) {
+        if (isLoginSuccess) {
+            viewModel.resetState()
+            onNavigateToLogin()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -141,9 +154,9 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    onNavigateToLogin()
+                    viewModel.login(email, password) // ← panggil login dulu
                 },
-                enabled = isFormValid,
+                enabled = isFormValid && !isLoading, // ← disable saat loading
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -153,17 +166,25 @@ fun LoginScreen(
                     disabledContainerColor = MaterialTheme.colorScheme.outline
                 )
             ) {
-                Icon(
-                    Icons.Default.Pets,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(Icons.Default.Pets, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Masuk", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                }
+            }
 
+            errorMessage?.let {
                 Text(
-                    "Masuk",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
+                    it,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 

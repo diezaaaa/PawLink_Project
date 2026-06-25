@@ -19,10 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.yarsi.student.pawlink.data.repository.HewanModel
 import com.example.yarsi.student.pawlink.ui.theme.PawAmber
 import com.example.yarsi.student.pawlink.ui.theme.PawAmberLight
 import com.example.yarsi.student.pawlink.ui.theme.PawBlue
@@ -31,6 +35,7 @@ import com.example.yarsi.student.pawlink.ui.theme.PawLinkTheme
 import com.example.yarsi.student.pawlink.ui.theme.PawPrimary
 import com.example.yarsi.student.pawlink.ui.theme.PawPrimaryLight
 import com.example.yarsi.student.pawlink.viewmodel.AuthViewModel
+import com.example.yarsi.student.pawlink.viewmodel.HewanViewModel
 
 enum class AnimalStatus(
     val label: String,
@@ -75,65 +80,81 @@ data class AnimalDetail(
 
 @Composable
 fun DetailHewanScreen(
-    animal: AnimalDetail = sampleAnimal(),
-    authViewModel: AuthViewModel? = null,
+    hewanId: String = "",
+    hewanViewModel: HewanViewModel = viewModel(),
     onBack: () -> Unit = {},
     onAjukanAdopsi: () -> Unit = {},
     onChat: () -> Unit = {}
 ){
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-        .verticalScroll(rememberScrollState())
-    ){
-        HeroPhotoSection(
-            animal = animal,
-            onBack = onBack,
-        )
 
+    val uiState by hewanViewModel.uiState.collectAsState()
+
+    LaunchedEffect(hewanId) {
+        if (hewanId.isNotBlank()) {
+            hewanViewModel.loadHewanDetail(hewanId)
+        }
+    }
+
+    if (uiState.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = PawPrimary)
+        }
+        return
+    }
+    val contact = uiState.selectedHewanContact
+    val animal = uiState.selectedHewan?.toAnimalDetail(
+        contactName  = contact?.first ?: "",
+        contactPhone = contact?.second ?: ""
+    ) ?: return
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Box scrollable untuk konten
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 300.dp)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            HeaderSection(animal = animal)
+            HeroPhotoSection(
+                animal = animal,
+                photoUrl = uiState.selectedHewanPhotoUrl,
+                onBack = onBack
+            )
 
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-
-            InfoGridSection(animal = animal)
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-
-            Description(animal = animal)
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-
-            LocationSection(animal = animal)
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-
-            ContactSection(animal = animal)
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-
-            if (animal.status == AnimalStatus.DITEMUKAN) {
-                FoundBanner()
-            }
-
-            if (animal.status != AnimalStatus.DITEMUKAN) {
-                Spacer(modifier = Modifier.height(80.dp))
-            } else {
-                Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 300.dp)
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                HeaderSection(animal = animal)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                InfoGridSection(animal = animal)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                Description(animal = animal)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                LocationSection(animal = animal)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                ContactSection(animal = animal)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                if (animal.status == AnimalStatus.DITEMUKAN) FoundBanner()
+                Spacer(modifier = Modifier.height(
+                    if (animal.status != AnimalStatus.DITEMUKAN) 80.dp else 16.dp
+                ))
             }
         }
+
+        // Action buttons menempel di bawah — di dalam BoxScope
         if (animal.status != AnimalStatus.DITEMUKAN) {
             ActionButtons(
                 animal = animal,
                 onAjukanAdopsi = onAjukanAdopsi,
                 onChat = onChat,
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier.align(Alignment.BottomCenter) // ← valid di sini
             )
         }
     }
@@ -191,12 +212,39 @@ fun HeaderSection(animal: AnimalDetail){
 }
 
 @Composable
-fun HeroPhotoSection(animal: AnimalDetail, onBack: () -> Unit) {
+fun HeroPhotoSection(
+    animal: AnimalDetail,
+    photoUrl: String = "",
+    onBack: () -> Unit
+) {
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(300.dp)
         .background(MaterialTheme.colorScheme.primaryContainer)
     ){
+        if (photoUrl.isNotBlank()) {
+            // Tampilkan foto dari Storage
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = "Foto hewan",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            // Placeholder kalau tidak ada foto
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.Pets,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    modifier = Modifier.size(100.dp)
+                )
+            }
+        }
+
         Box(modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ){
@@ -611,6 +659,32 @@ fun ActionButtons(
     }
 }
 
+
+fun HewanModel.toAnimalDetail(
+    contactName: String = "",
+    contactPhone: String = ""
+): AnimalDetail {
+    val animalStatus = when (this.status.lowercase()) {
+        "tersedia"  -> AnimalStatus.ADOPSI
+        "hilang"    -> AnimalStatus.HILANG
+        "ditemukan" -> AnimalStatus.DITEMUKAN
+        else        -> AnimalStatus.ADOPSI
+    }
+    return AnimalDetail(
+        id          = this.id,
+        name        = this.name,
+        type        = this.type,
+        breed       = this.breed,
+        age         = this.age,
+        gender      = this.gender,
+        description = this.description,
+        status      = animalStatus,
+        location    = this.location, // belum ada field lokasi di HewanModel sebagai string
+        contactName = contactName, // perlu ambil dari collection users berdasarkan userId
+        contactPhones = contactPhone,
+        postedAt    = this.createdAt
+    )
+}
 fun sampleAnimal(status: AnimalStatus = AnimalStatus.ADOPSI) = AnimalDetail(
     id = "1",
     name = "Mochi",
@@ -628,13 +702,13 @@ fun sampleAnimal(status: AnimalStatus = AnimalStatus.ADOPSI) = AnimalDetail(
     postedAt = "2 jam yang lalu"
 )
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DetailAdopsiPreview() {
-    PawLinkTheme {
-        DetailHewanScreen(animal = sampleAnimal(AnimalStatus.ADOPSI))
-    }
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun DetailAdopsiPreview() {
+//    PawLinkTheme {
+//        DetailHewanScreen(animal = sampleAnimal(AnimalStatus.ADOPSI))
+//    }
+//}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

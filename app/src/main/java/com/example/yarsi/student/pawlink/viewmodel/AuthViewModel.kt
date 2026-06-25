@@ -37,6 +37,19 @@ class AuthViewModel : ViewModel() {
     private val _userId = MutableStateFlow("")
     val userId: StateFlow<String> = _userId.asStateFlow()
 
+    private val _userId = MutableStateFlow("")
+    val userId: StateFlow<String> = _userId.asStateFlow()
+
+    // Tambah state baru
+    private val _userCity = MutableStateFlow("")
+    val userCity: StateFlow<String> = _userCity.asStateFlow()
+
+    private val _userPhone = MutableStateFlow("")
+    val userPhone: StateFlow<String> = _userPhone.asStateFlow()
+
+    private val _userPhotoUrl = MutableStateFlow("")
+    val userPhotoUrl: StateFlow<String> = _userPhotoUrl.asStateFlow()
+
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -48,6 +61,7 @@ class AuthViewModel : ViewModel() {
                     .onSuccess {
                         android.util.Log.d("PawLink", "Login berhasil!")
                         fetchCurrentUser()
+                        _userEmail.value = email
                         _isLoginSuccess.value = true
                     }
                     .onFailure {
@@ -97,6 +111,26 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun updateProfile(nama: String, noHp: String, kota: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = repository.updateProfile(
+                userId = _userId.value,
+                nama = nama,
+                noHp = noHp,
+                kota = kota
+            )
+            result.onSuccess {
+                _userName.value = nama
+                _userPhone.value = noHp
+                _userCity.value = kota
+            }.onFailure {
+                _errorMessage.value = it.message
+            }
+            _isLoading.value = false
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -118,9 +152,17 @@ class AuthViewModel : ViewModel() {
     fun fetchCurrentUser() {
         viewModelScope.launch {
             val result = repository.getCurrentUser()
-            result.onSuccess { (name, role) ->
-                _userName.value = name.ifBlank { "Pengguna" }
-                _userRole.value = role
+            result.onSuccess { profile ->
+                _userName.value = profile.name.ifBlank { "Pengguna" }
+                _userRole.value = profile.role
+                _userCity.value = profile.city
+                _userEmail.value = profile.email
+                _userPhone.value = profile.phone
+                _userPhotoUrl.value = profile.photoUrl
+            }
+            val idResult = repository.getCurrentUserId()
+            idResult.onSuccess { id: String ->
+                _userId.value = id
             }
             // Ambil userId langsung dari account
             try {
