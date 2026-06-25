@@ -34,8 +34,6 @@ class AuthViewModel : ViewModel() {
 
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail.asStateFlow()
-    private val _userId = MutableStateFlow("")
-    val userId: StateFlow<String> = _userId.asStateFlow()
 
     private val _userId = MutableStateFlow("")
     val userId: StateFlow<String> = _userId.asStateFlow()
