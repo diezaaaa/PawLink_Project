@@ -81,6 +81,19 @@ class HewanRepository {
         }
     }
 
+    suspend fun getHewanByDocumentId(documentId: String): Result<HewanModel> {
+        return try {
+            val doc = database.getDocument(
+                databaseId = DATABASE_ID,
+                collectionId = COLLECTION_ID,
+                documentId = documentId
+            )
+            Result.success(doc.toHewanModel())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun tambahHewan(hewan: HewanModel): Result<String> {
         return try {
             val response = database.createDocument(
@@ -108,6 +121,26 @@ class HewanRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun getAktivitasTerbaru(): Result<List<HewanModel>> {
+        return try {
+            android.util.Log.d("PawLink", "getAktivitasTerbaru dipanggil")
+            val response = database.listDocuments(
+                DATABASE_ID,
+                COLLECTION_ID,
+                queries = listOf(
+                    Query.orderDesc("\$createdAt"),
+                    Query.limit(10)
+                )
+            )
+            android.util.Log.d("PawLink", "Aktivitas result: ${response.documents.size} docs")
+            val list = response.documents.map { it.toHewanModel() }
+            Result.success(list)
+        } catch (e: Exception) {
+            android.util.Log.e("PawLink", "getAktivitasTerbaru error: ${e.message}")
+            Result.failure(e)
+        }
+    }
 }
 
 data class HewanModel(
@@ -121,6 +154,8 @@ data class HewanModel(
     val description: String = "",
     val status: String = "",       // "tersedia", "hilang", "ditemukan", "teradopsi"
     val postType: String = "",     // "adopsi", "hilang"
+    val location: String = "",
+    val photoUrl: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val createdAt: String = ""
@@ -139,6 +174,8 @@ fun io.appwrite.models.Document<Map<String, Any>>.toHewanModel(): HewanModel {
         description = data["description"]?.toString() ?: "",
         status      = data["status"]?.toString() ?: "",
         postType    = data["post_type"]?.toString() ?: "",
+        location    = data["location"]?.toString() ?: "",
+        photoUrl    = data["photo_url"]?.toString() ?: "",
         latitude    = data["latitude"]?.toString()?.toDoubleOrNull() ?: 0.0,
         longitude   = data["longitude"]?.toString()?.toDoubleOrNull() ?: 0.0,
         createdAt   = this.createdAt
@@ -155,6 +192,8 @@ fun HewanModel.toMap(): Map<String, Any> = mapOf(
     "description" to description,
     "status"      to status,
     "post_type"   to postType,
+    "location"    to location,
+    "photo_url"   to photoUrl,
     "latitude"    to latitude,
     "longitude"   to longitude
 )

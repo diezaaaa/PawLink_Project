@@ -16,20 +16,11 @@ class StorageRepository {
         context: Context,
         imageUri: Uri
     ): Result<Pair<String, String>> {
-
         return try {
-
-            val inputStream =
-                context.contentResolver.openInputStream(imageUri)
-                    ?: throw Exception("File tidak ditemukan")
-
-            val bytes = inputStream.use {
-                it.readBytes()
-            }
-
-            val mimeType =
-                context.contentResolver.getType(imageUri)
-                    ?: "image/jpeg"
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+                ?: throw Exception("File tidak ditemukan")
+            val bytes = inputStream.use { it.readBytes() }
+            val mimeType = context.contentResolver.getType(imageUri) ?: "image/jpeg"
 
             val file = AppWriteProvider.storage.createFile(
                 bucketId = BUCKET_ID,
@@ -41,19 +32,13 @@ class StorageRepository {
                 )
             )
 
-            val url = AppWriteProvider.storage.getFileView(
-                bucketId = BUCKET_ID,
-                fileId = file.id
-            ).toString()
+            // Build URL manual
+            val url = "https://sgp.cloud.appwrite.io/v1/storage/buckets/$BUCKET_ID/files/${file.id}/view?project=6a152cbc0019ae4592b6"
 
-            Result.success(
-                Pair(file.id, url)
-            )
+            Result.success(Pair(file.id, url))
 
         } catch (e: Exception) {
-
             Result.failure(e)
-
         }
     }
 }

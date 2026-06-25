@@ -96,7 +96,16 @@ fun AppNavigation(
         composable(Routes.DASHBOARD) {
             LaunchedEffect(Unit) {
                 authViewModel.fetchCurrentUser()
+                hewanViewModel.loadSemuaHewan()
+                hewanViewModel.loadAktivitasTerbaru()
             }
+
+            LaunchedEffect(hewanViewModel.uiState.collectAsState().value.isPostingSuccess) {
+                if (hewanViewModel.uiState.value.isPostingSuccess) {
+                    hewanViewModel.loadSemuaHewan()
+                }
+            }
+
             DashboardScreen(
                 authViewModel = authViewModel,
                 onHewanClick = { hewan_Id ->
@@ -115,17 +124,24 @@ fun AppNavigation(
         }
 
         composable(Routes.DETAIL_HEWAN + "/{hewanId}") { backStackEntry ->
-            val hewanId = backStackEntry.arguments?.getString("hewanId")
+            val hewanId = backStackEntry.arguments?.getString("hewanId") ?: ""
+            val hewanViewModel: HewanViewModel = viewModel()
             DetailHewanScreen(
+                hewanId = hewanId,
+                hewanViewModel = hewanViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Routes.POSTING_HEWAN) {
             val userRole by authViewModel.userRole.collectAsState()
+            val userCity by authViewModel.userCity.collectAsState()
+            val userId by authViewModel.userId.collectAsState()
 
             PostingHewanScreen(
                 userRole = userRole,
+                userId = userId,
+                userCity = userCity,
                 hewanViewModel = hewanViewModel,
                 onBack = { navController.popBackStack() },
                 onPostingSuccess = { navController.popBackStack() }
@@ -133,15 +149,21 @@ fun AppNavigation(
         }
 
         composable(Routes.PROFIL) {
-            val userName by authViewModel.userName.collectAsState()
-            val userRole by authViewModel.userRole.collectAsState()
-            val userEmail by authViewModel.userEmail.collectAsState()
+            val userName     by authViewModel.userName.collectAsState()
+            val userRole     by authViewModel.userRole.collectAsState()
+            val userEmail    by authViewModel.userEmail.collectAsState()
+            val userPhone    by authViewModel.userPhone.collectAsState()    // tambah
+            val userCity     by authViewModel.userCity.collectAsState()     // tambah
+            val userPhotoUrl by authViewModel.userPhotoUrl.collectAsState() // tambah
 
             ProfilScreen(
-                nama = userName,
-                email = userEmail,
-                role = userRole,
-                onBack = { navController.popBackStack() },
+                nama     = userName,
+                email    = userEmail,
+                noHp     = userPhone,    // sebelumnya pakai default
+                kota     = userCity,     // sebelumnya pakai default
+                role     = userRole,
+                photoUrl = userPhotoUrl, // sebelumnya pakai default
+                onBack   = { navController.popBackStack() },
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate(Routes.LOGIN) {
@@ -149,7 +171,8 @@ fun AppNavigation(
                     }
                 },
                 onSaveProfile = { nama, noHp, kota ->
-                    // TODO: update ke Appwrite nanti
+                    authViewModel.updateProfile(nama, noHp, kota)
+                    authViewModel.fetchCurrentUser()
                 }
             )
         }

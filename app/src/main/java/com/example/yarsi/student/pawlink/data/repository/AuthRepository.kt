@@ -9,6 +9,15 @@ import io.appwrite.exceptions.AppwriteException
 import io.appwrite.models.InputFile
 import io.appwrite.models.Session
 
+data class UserProfile(
+    val name: String,
+    val role: String,
+    val phone: String,
+    val city: String,
+    val email: String,
+    val photoUrl: String
+)
+
 class AuthRepository {
 
     companion object {
@@ -61,12 +70,7 @@ class AuthRepository {
 
         Log.d(TAG, "UPLOAD SUCCESS - fileId = ${file.id}")
 
-        val fileUrl = AppWriteProvider.storage.getFileView(
-            bucketId = BUCKET_ID,
-            fileId = file.id
-        ).toString()
-
-        Log.d(TAG, "FILE URL = $fileUrl")
+        val fileUrl = "https://sgp.cloud.appwrite.io/v1/storage/buckets/$BUCKET_ID/files/${file.id}/view?project=6a152cbc0019ae4592b6"
 
         return fileUrl
     }
@@ -179,29 +183,85 @@ class AuthRepository {
         }
     }
 
-    suspend fun getCurrentUser(): Result<Pair<String, String>> {
+    suspend fun getCurrentUser(): Result<UserProfile> {
         return try {
             val user = AppWriteProvider.account.get()
-            Log.d("PawLink", "getCurrentUser - user.name = ${user.name}, user.id = ${user.id}")
 
             val doc = AppWriteProvider.databases.getDocument(
-                databaseId = "6a152d050026fd474a91",
-                collectionId = "users",
+                databaseId = DATABASE_ID,
+                collectionId = USERS_COLLECTION_ID,
                 documentId = user.id
             )
-            Log.d("PawLink", "getCurrentUser - doc name = ${doc.data["name"]}")
 
-            val name = doc.data["name"]?.toString() ?: user.name // ← ambil dari doc dulu
-            val role = doc.data["role"]?.toString()?.lowercase() ?: "pencari"
-            Result.success(Pair(name, role))
+            Result.success(
+                UserProfile(
+                    name     = doc.data["name"]?.toString() ?: user.name,
+                    role     = doc.data["role"]?.toString()?.lowercase() ?: "pencari",
+                    phone    = doc.data["phone"]?.toString() ?: "",
+                    city     = doc.data["city"]?.toString() ?: "",
+                    email    = doc.data["email"]?.toString() ?: user.email,
+                    photoUrl = doc.data["photo_url"]?.toString() ?: ""
+                )
+            )
         } catch (e: AppwriteException) {
-            Log.e("PawLink", "getCurrentUser failed: ${e.message}")
+            Log.e(TAG, "getCurrentUser failed: ${e.message}")
             Result.failure(Exception(e.message))
         } catch (e: Exception) {
-            Log.e("PawLink", "getCurrentUser failed: ${e.message}")
+            Log.e(TAG, "getCurrentUser failed: ${e.message}")
             Result.failure(e)
         }
     }
+
+    suspend fun getCurrentUserId(): Result<String> {
+        return try {
+            val user = AppWriteProvider.account.get()
+            Result.success(user.id)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUserById(userId: String): Result<Pair<String, String>> {
+        return try {
+            val doc = AppWriteProvider.databases.getDocument(
+                databaseId = DATABASE_ID,
+                collectionId = USERS_COLLECTION_ID,
+                documentId = userId
+            )
+            val name  = doc.data["name"]?.toString() ?: ""
+            val phone = doc.data["phone"]?.toString() ?: ""
+            Result.success(Pair(name, phone))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateProfile(
+        userId: String,
+        nama: String,
+        noHp: String,
+        kota: String
+    ): Result<Unit> {
+        return try {
+            android.util.Log.d("PawLink", "updateProfile - userId=$userId, nama=$nama")
+            AppWriteProvider.databases.updateDocument(
+                databaseId = DATABASE_ID,
+                collectionId = USERS_COLLECTION_ID,
+                documentId = userId,
+                data = mapOf(
+                    "name" to nama,
+                    "phone" to noHp,
+                    "city" to kota
+                )
+            )
+            android.util.Log.d("PawLink", "updateProfile SUCCESS")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("PawLink", "updateProfile FAILED: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     suspend fun logout(): Result<String> {
         return try {
             AppWriteProvider.account.deleteSession("current")

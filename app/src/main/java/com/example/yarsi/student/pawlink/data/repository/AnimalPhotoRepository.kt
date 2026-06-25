@@ -2,6 +2,7 @@ package com.example.yarsi.student.pawlink.data.repository
 
 import com.example.yarsi.student.pawlink.config.AppWriteProvider
 import io.appwrite.ID
+import io.appwrite.Query
 
 class AnimalPhotoRepository {
 
@@ -33,6 +34,24 @@ class AnimalPhotoRepository {
 
             Result.success(Unit)
 
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getFotoByAnimalId(animalId: String): Result<String> {
+        return try {
+            val response = AppWriteProvider.databases.listDocuments(
+                databaseId = DATABASE_ID,
+                collectionId = COLLECTION_ID,
+                queries = listOf(
+                    Query.equal("animal_id", animalId),
+                    Query.limit(1)
+                )
+            )
+            val url = response.documents.firstOrNull()
+                ?.data?.get("url")?.toString() ?: ""
+            Result.success(url)
         } catch (e: Exception) {
             Result.failure(e)
         }
